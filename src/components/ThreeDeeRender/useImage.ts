@@ -15,17 +15,18 @@ export function useImage(imageUrl: string){
 
   const loadImage = useCallback((url: string)=> {
     const loader = new THREE.ImageBitmapLoader();
-    loader.setOptions({ imageOrientation: 'flipY' });
+    // loader.setOptions({ imageOrientation: 'flipY' });
   
     loader.load(
       url,
       // onLoad回调
       function (imageBitmap) {
         const texture = new THREE.CanvasTexture(imageBitmap);
-        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide });
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
   
         const faceGeometry = new THREE.PlaneGeometry(imageBitmap.width, imageBitmap.height);
         const mesh = new THREE.Mesh(faceGeometry, material)
+        mesh.position.set(imageBitmap.width/2, imageBitmap.height/2, 0)
         setImageInfo({
           area: {
             width: imageBitmap.width,

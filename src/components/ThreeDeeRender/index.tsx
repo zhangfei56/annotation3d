@@ -34,15 +34,15 @@ function ThreeDeeRender(props: Props): JSX.Element {
 
       const input = new InputEmitter(canvas!, imageInfo, renderer);
 
-      const rectTool = new RectTool(input)
+      const rectTool = new RectTool(input, renderer)
       rectTool.init()
 
       const camera = renderer.getCamera()
       const editHalfWidth = imageInfo?.area?.width / 2
-      camera.left = -editHalfWidth
-      camera.right = editHalfWidth
-      camera.top = editHalfWidth
-      camera.bottom = -editHalfWidth
+      camera.left = 0
+      camera.right = imageInfo?.area?.width
+      camera.top = 0
+      camera.bottom = -imageInfo?.area?.width
 
       camera.updateProjectionMatrix()
       renderer.render()
@@ -94,18 +94,13 @@ function ThreeDeeRender(props: Props): JSX.Element {
 
   function addRect() {
     if (renderer) {
-      rect2d = new Rect2D(1, 1, 4, 4, renderer);
+      // rect2d = new Rect2D(1, 1, 4, 4, renderer);
     }
   }
 
-  function changePosition() {
-    rect2d?.changePosition(2, 2, 5, 5)
-  }
-
   return <>
-    <canvas ref={setCanvas} width={width} height={height}></canvas>
+    <canvas ref={setCanvas} width={window.innerWidth} height={window.innerHeight}></canvas>
     <button onClick={addRect}>click</button>
-    <button onClick={changePosition}>change position</button>
   </>
 }
 export default ThreeDeeRender

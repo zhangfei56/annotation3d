@@ -19,28 +19,27 @@ export default class Renderer {
     });
     this.scene = new THREE.Scene();
     this.camera = new THREE.OrthographicCamera();
-    // this.camera = new THREE.OrthographicCamera();
+    this.camera.position.set(0,0, -100)
 
-    this.camera.position.set(0,0, 1)
-
-
-    // const faceGeo = new THREE.PlaneGeometry(20, 30);
-    // const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    // const rectFace = new THREE.Mesh(faceGeo, material)
-    // this.scene.add(rectFace)
+    this.camera.lookAt(new THREE.Vector3(0,1,1))
+    this.camera.updateMatrixWorld()
 
     this.gl.render(this.scene, this.camera);
+
   }
 
   public add(obj: THREE.Object3D){
     this.scene.add(obj)
-    this.gl.render(this.scene, this.camera);
   }
 
   public render(){
     // if has performance issue use throttle instead
     
     this.gl.render(this.scene, this.camera);
+  }
+
+  public remove(obj: THREE.Object3D){
+    this.scene.remove(obj)
   }
 
   public getCamera(){
