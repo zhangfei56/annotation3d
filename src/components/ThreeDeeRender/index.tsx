@@ -10,7 +10,7 @@ type Props = {
   height: number;
 }
 import Renderer from './Renderer';
-import Rect2D from './Rect2D';
+import Rect2D from './Shapes/Rect2D';
 import { useImage } from './useImage';
 function ThreeDeeRender(props: Props): JSX.Element {
   const { width, height } = props

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { Spherical } from 'three';
-import { InputEmitter, EventType, Point2D, MouseLevel } from './Input';
-import Renderer from './Renderer';
+import { Point2D, } from '../Input';
+import { BaseShape } from './BaseShape';
 
 export enum AssistDirectionEnum {
   Horizontal,
@@ -10,21 +10,29 @@ export enum AssistDirectionEnum {
   
 }
 
-export default class AssistPoint {
-  // private position: THREE.Vector3
-  // private direction;
+export default class AssistPoint extends BaseShape {
+  protected mouseMoveHandler(): void {
+    throw new Error('Method not implemented.');
+  }
+  protected mouseDownHandler(): void {
+    throw new Error('Method not implemented.');
+  }
+  protected mouseUpHandler(): void {
+    throw new Error('Method not implemented.');
+  }
+
   private sphere;
-  private input;
   private pointMoveCallback;
 
-  public constructor(position: THREE.Vector3, input: InputEmitter, parent: any, fn: any){
+  public constructor(position: THREE.Vector3, parent: any, fn: any){
+    super();
     const geometry = new THREE.SphereGeometry( 8, 32, 16 );
     const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     this.sphere = new THREE.Mesh( geometry, material );
     this.sphere.position.set(position.x, position.y, position.z)
-    this.input = input
     this.sphere.userData.selfClass = parent
     this.sphere.userData.pointMove = this.pointMove.bind(this)
+    this.sphere.visible =false
     this.pointMoveCallback = fn
   }
 

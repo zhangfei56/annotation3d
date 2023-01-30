@@ -1,5 +1,5 @@
 import { InputEmitter, EventType, Point2D, MouseLevel } from "../Input";
-import  Rect2D  from "../Rect2D"
+import  Rect2D  from "../Shapes/Rect2D"
 import Renderer from "../Renderer";
 
 export class RectTool {
@@ -38,8 +38,7 @@ export class RectTool {
 
   onMouseUp(point: Point2D){
       // save
-      this.rect2d?.hideAssistPoint()
-      this.rect2d?.addMoveEvent()
+      // this.rect2d?.hideAssistPoint()
 
       this.rect2d =null
   }

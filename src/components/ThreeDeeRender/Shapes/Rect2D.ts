@@ -1,10 +1,11 @@
-import { Renderable } from './Renderable'
-import Renderer from './Renderer';
+import { Renderable } from '../Renderable'
+import Renderer from '../Renderer';
 import * as THREE from 'three';
-import { InputEmitter, Point2D } from './Input';
+import { InputEmitter, Point2D } from '../Input';
 import AssistPoint, { AssistDirectionEnum } from './AssistPoint';
 import { DoubleSide } from 'three';
 import { generateUUID } from 'three/src/math/MathUtils';
+import { BaseShape } from './BaseShape';
 
 
 
@@ -19,7 +20,8 @@ const AssistPointDefined: Record<string, {x: 'minX' | 'maxX'; y: 'minY' | 'maxY'
   }
 }
 
-class Rect2D  {
+class Rect2D extends BaseShape {
+
   private id = generateUUID()
   private renderder: Renderer;
   private input: InputEmitter;
@@ -35,69 +37,81 @@ class Rect2D  {
 
   private assistPointMap: Map<keyof typeof AssistPointDefined, AssistPoint>
 
-  private faceMaterial: THREE.MeshBasicMaterial
 
-  private rectFace?: THREE.Object3D;
+  private rectFace: THREE.Object3D;
 
   public constructor(minX: number, minY: number, maxX: number, maxY: number, renderder: Renderer, input: InputEmitter) {
-    this.assistPointMap = new Map()
+    super();
     this.input = input;
+    this.renderder = renderder;
     this.keyPoint = { minX, minY, maxX, maxY };
 
-    this.faceMaterial = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.DoubleSide })
-    this.faceMaterial.depthTest =  false
-    this.faceMaterial.transparent = true
-    this.faceMaterial.opacity = 0.5 
+    this.assistPointMap = new Map()
 
-
-    const anchor = this.getFourAnchor()
+    const anchor = this.getFaceAnchor()
     this.sideGeometry = new THREE.BufferGeometry().setFromPoints(anchor);
-    
+    // const normals = [0,0,1]
+    // const colors = [];
+    // colors.push( 0.5, 0.5, 1 );
+    // this.sideGeometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 6 ))
+    // this.sideGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
     // const positionAttribute = new THREE.BufferAttribute(new Float32Array(4 * 3), 3); // allocate large enough buffer
     // positionAttribute.setUsage(THREE.DynamicDrawUsage);
     // this.sideGeometry.setAttribute('position', positionAttribute);
 
     const lineMaterial = new THREE.LineBasicMaterial({
-
       color: this.color,
       side: THREE.DoubleSide
     });
     this.rectLine = new THREE.LineLoop(this.sideGeometry, lineMaterial)
 
-    this.renderder = renderder;
     this.renderder.add(this.rectLine);
 
-    this.rectLine.userData.selfClass = this
+    // this.rectLine.userData.selfClass = this
+
+    const faceMaterial = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.DoubleSide , vertexColors: false})
+    faceMaterial.depthTest =  false
+    faceMaterial.transparent = true
+    faceMaterial.opacity = 0.5 
+
+    this.rectFace = new THREE.Mesh(this.sideGeometry, faceMaterial)
+    this.input.addListerObject(this.rectFace)
+
+    this.rectFace.userData.selfClass = this
+    this.renderder.add(this.rectFace)
 
 
     // assist point
     this.createAssistPoints()
-    this.render()
+    this.renderder.render()
   }
 
   public changeMaxPoint(maxX: number, maxY: number) :void {
     this.keyPoint.maxX = maxX
     this.keyPoint.maxY = maxY
-
-
     //
     this.updateAssistPoints()
 
     this.render()
   }
 
-  private getFourAnchor(){
+  private getFaceAnchor(){
     return [
       new THREE.Vector3(this.keyPoint.minX, this.keyPoint.minY, 0),
       new THREE.Vector3(this.keyPoint.minX, this.keyPoint.maxY, 0),
       new THREE.Vector3(this.keyPoint.maxX, this.keyPoint.maxY, 0),
-      new THREE.Vector3(this.keyPoint.maxX, this.keyPoint.minY, 0)
+      new THREE.Vector3(this.keyPoint.maxX, this.keyPoint.maxY, 0),
+      new THREE.Vector3(this.keyPoint.maxX, this.keyPoint.minY, 0),
+      new THREE.Vector3(this.keyPoint.minX, this.keyPoint.minY, 0),
     ]
   }
 
   public render() {
-    this.renderSideLine()
-    this.renderFace()
+    const fourPoint = this.getFaceAnchor()
+    this.sideGeometry.setFromPoints(fourPoint)
+    // this.rectLine.geometry.computeBoundingBox()
+    this.rectLine.geometry.computeBoundingSphere()
+
     this.renderder.render()
   }
 
@@ -121,12 +135,11 @@ class Rect2D  {
       const positionDefined = AssistPointDefined[key]
       const assistPoint = new AssistPoint(
         new THREE.Vector3(this.keyPoint[positionDefined.x], this.keyPoint[positionDefined.y], 0), 
-        this.input, this, this.assistPointMove(positionDefined).bind(this) )
+        this, this.assistPointMove(positionDefined).bind(this) )
       this.renderder.add(assistPoint.getPoint())
       this.assistPointMap.set(key, assistPoint)
+      this.input.addListerObject(assistPoint.getPoint())
     })
-
-
   }
 
   private updateAssistPoints(){
@@ -150,40 +163,14 @@ class Rect2D  {
     }
   }
 
-  private renderSideLine(){
-    // this.updatePosition();
-
-    const fourPoint = this.getFourAnchor()
-    this.sideGeometry.setFromPoints(fourPoint)
-    this.rectLine.geometry.computeBoundingBox()
-    this.rectLine.geometry.computeBoundingSphere()
-    
+  protected mouseMoveHandler(): void {
+    throw new Error('Method not implemented.');
   }
-
-  private renderFace(){
-    if(this.rectFace){
-      this.renderder.remove(this.rectFace)
-      // this.input.removeListerObject(this.rectFace)
-    }
-    // face
-    const faceGeometry = new THREE.PlaneGeometry(Math.abs(this.keyPoint.maxX - this.keyPoint.minX),Math.abs(this.keyPoint.maxY - this.keyPoint.minY ), 3, 3);
-    
-    this.rectFace = new THREE.Mesh(faceGeometry, this.faceMaterial)
-    this.rectFace.position.x = (this.keyPoint.maxX+this.keyPoint.minX) /2;
-    this.rectFace.position.y = (this.keyPoint.maxY+this.keyPoint.minY) /2;
-    this.rectFace.userData.selfClass = this
-    this.renderder.add(this.rectFace)
-
-    // this.input.addListerObject(this.rectFace)
+  protected mouseDownHandler(): void {
+    throw new Error('Method not implemented.');
   }
-
-  public addMoveEvent(){
-    if(this.rectFace){
-      this.input.addListerObject(this.rectFace)
-    }
-    this.assistPointMap.forEach(( point, key) => {
-      this.input.addListerObject(point.getPoint())
-    })
+  protected mouseUpHandler(): void {
+    throw new Error('Method not implemented.');
   }
 
 }

@@ -28,6 +28,7 @@ export class InputEmitter extends EventEmitter{
   private raycaster: THREE.Raycaster;
   private listenerObjects: THREE.Object3D[] = [];
   private selected: THREE.Object3D | undefined;
+  private currentPosition:  THREE.Vector3 | undefined
 
   public constructor(canvas: HTMLCanvasElement, imageInfo: ImageExport, renderer: Renderer){
     super()
@@ -47,10 +48,6 @@ export class InputEmitter extends EventEmitter{
     this.listenerObjects.push(obj)
   }
 
-  public addListerObjects(objs: THREE.Object3D[])  {
-    this.listenerObjects.push(...objs)
-  }
-
   public removeListerObject(obj: THREE.Object3D) {
     const index = this.listenerObjects.indexOf(obj)
     if(index !== -1){
@@ -58,17 +55,21 @@ export class InputEmitter extends EventEmitter{
 
     }
   }
-  
-  onMouseMove(event: MouseEvent) {
-    //event.preventDefault();
+
+  private setCurrentPosition(event: MouseEvent) {
     const mouse: { x: number; y: number } = { x: 0, y: 0 };
     mouse.x = (event.offsetX / this.canvas.width) * 2 - 1;
     mouse.y = - (event.offsetY / this.canvas.height) * 2 + 1;
     const stdVector = new THREE.Vector3(mouse.x, mouse.y, 0);
-    const wo = stdVector.unproject(this.renderer!.getCamera())
-
-
+    this.currentPosition = stdVector.unproject(this.renderer!.getCamera())
+    
     this.raycaster.setFromCamera(mouse, this.renderer!.getCamera());
+  }
+  
+  onMouseMove(event: MouseEvent) {
+    //event.preventDefault();
+    
+    this.setCurrentPosition(event)
 
     const imageIntersections = this.raycaster.intersectObject(this.imageInfo.imagePlane);
 
@@ -80,8 +81,8 @@ export class InputEmitter extends EventEmitter{
         listerIntersections[0].object.userData.selfClass?.showAssistPoint?.()
         if(this.selected?.userData.pointMove){
           this.selected.userData.pointMove({
-            x: wo.x,
-            y: wo.y
+            x: this.currentPosition!.x,
+            y:  this.currentPosition!.y
           })
           return
         }
@@ -92,15 +93,11 @@ export class InputEmitter extends EventEmitter{
 
 
       this.emit(EventType.MouseMoveEvent, {
-        x: wo.x,
-        y: wo.y,
+        x:  this.currentPosition!.x,
+        y:  this.currentPosition!.y,
       })
   
     }
-
-
-    
-
     // console.log("clickedMouse", clickedMouse)
     // if (clickedMouse) {
     //   event.preventDefault();
@@ -117,13 +114,7 @@ export class InputEmitter extends EventEmitter{
   }
 
   private onMouseDown(event: MouseEvent) {
-    const mouse: { x: number; y: number } = { x: 0, y: 0 };
-    mouse.x = (event.offsetX / this.canvas.width) * 2 - 1;
-    mouse.y = - (event.offsetY / this.canvas.height) * 2 + 1;
-
-
-
-    this.raycaster.setFromCamera(mouse, this.renderer!.getCamera());
+    this.setCurrentPosition(event)
 
     const imageIntersections = this.raycaster.intersectObject(this.imageInfo.imagePlane);
 
@@ -136,11 +127,9 @@ export class InputEmitter extends EventEmitter{
         return
       }
 
-      const stdVector = new THREE.Vector3(mouse.x, mouse.y, 0);
-      const wo = stdVector.unproject(this.renderer!.getCamera())
       this.emit(EventType.MouseDownEvent, {
-        x: wo.x,
-        y: wo.y,
+        x: this.currentPosition!.x,
+        y: this.currentPosition!.y,
       })
   
     }
@@ -152,22 +141,13 @@ export class InputEmitter extends EventEmitter{
     // })
   }
 
-  private getMousePosition(event: MouseEvent){
-    const mouse: { x: number; y: number } = { x: 0, y: 0 };
-    mouse.x = (event.offsetX / this.canvas.width) * 2 - 1;
-    mouse.y = - (event.offsetY / this.canvas.height) * 2 + 1;
-
-    const stdVector = new THREE.Vector3(mouse.x, mouse.y, 0);
-    const wo = stdVector.unproject(this.renderer!.getCamera())
-    return wo
-  }
   onMouseUp(event: MouseEvent) {
     this.selected = undefined;
-    const wo = this.getMousePosition(event);
+    this.setCurrentPosition(event);
 
     this.emit(EventType.MouseUpEvent, {
-      x: wo.x,
-      y: wo.y,
+      x: this.currentPosition!.x,
+      y: this.currentPosition!.y,
     })
   }
   
