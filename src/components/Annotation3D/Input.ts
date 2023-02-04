@@ -2,7 +2,6 @@
 import EventEmitter from 'eventemitter3'
 import * as THREE from 'three'
 import Renderer from './Renderer';
-import {ImageExport } from './useImage'
 
 export const EventType = {
   ImageMoveEvent: 'ImageMoveEvent',
@@ -23,18 +22,18 @@ export enum MouseLevel {
 }
 export class InputEmitter extends EventEmitter{
   private canvas: HTMLCanvasElement;
-  private imageInfo: ImageExport
   private renderer: Renderer
   private raycaster: THREE.Raycaster;
   private listenerObjects: THREE.Object3D[] = [];
-  private selected: THREE.Object3D | undefined;
+  private clickedObjects: THREE.Object3D[] | undefined;
+  private movedObjects: THREE.Object3D[] =[]
+
   private currentPosition:  THREE.Vector3 | undefined
 
-  public constructor(canvas: HTMLCanvasElement, imageInfo: ImageExport, renderer: Renderer){
+  public constructor(canvas: HTMLCanvasElement, renderer: Renderer){
     super()
     this.canvas = canvas;
 
-    this.imageInfo = imageInfo
     this.renderer = renderer;
 
     this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
@@ -71,33 +70,35 @@ export class InputEmitter extends EventEmitter{
     
     this.setCurrentPosition(event)
 
-    const imageIntersections = this.raycaster.intersectObject(this.imageInfo.imagePlane);
 
-    if (imageIntersections.length > 0) {
+      if((this.clickedObjects?.length??0)>0){
+        this.clickedObjects!.forEach(item => item.userData.selfClass.mouseMoveHandler(this.currentPosition))
+        return
+      }
 
       const listerIntersections = this.raycaster.intersectObjects(this.listenerObjects, true);
 
+      let enterObjects = []
+      let leaveObjects = []
+      let movingObjects: THREE.Object3D[] = []
       if (listerIntersections.length > 0) {
-        listerIntersections[0].object.userData.selfClass?.showAssistPoint?.()
-        if(this.selected?.userData.pointMove){
-          this.selected.userData.pointMove({
-            x: this.currentPosition!.x,
-            y:  this.currentPosition!.y
-          })
-          return
-        }
-
-      }else {
-        this.listenerObjects.forEach(obj => obj.userData?.selfClass?.hideAssistPoint())
+        movingObjects = listerIntersections.map(item => item.object)
+        movingObjects.forEach(item => item.userData.selfClass.mouseMoveHandler(this.currentPosition))
       }
 
+      enterObjects = movingObjects.filter(item => !this.movedObjects.includes(item))
+      enterObjects.forEach(item => item.userData.selfClass.mouseEnterHandler(this.currentPosition))
+
+      leaveObjects = this.movedObjects.filter(item => !movingObjects.includes(item))
+      leaveObjects.forEach(item => item.userData.selfClass.mouseLeaveHandler(this.currentPosition))
+
+      this.movedObjects = movingObjects
 
       this.emit(EventType.MouseMoveEvent, {
         x:  this.currentPosition!.x,
         y:  this.currentPosition!.y,
       })
   
-    }
     // console.log("clickedMouse", clickedMouse)
     // if (clickedMouse) {
     //   event.preventDefault();
@@ -116,14 +117,13 @@ export class InputEmitter extends EventEmitter{
   private onMouseDown(event: MouseEvent) {
     this.setCurrentPosition(event)
 
-    const imageIntersections = this.raycaster.intersectObject(this.imageInfo.imagePlane);
 
-    if (imageIntersections.length > 0) {
 
       const listerIntersections = this.raycaster.intersectObjects(this.listenerObjects, true);
 
       if (listerIntersections.length > 0) {
-        this.selected = listerIntersections[0].object
+        this.clickedObjects = listerIntersections.map(item => item.object)
+        this.clickedObjects.forEach(item => item.userData.selfClass.mouseDownHandler(this.currentPosition))
         return
       }
 
@@ -132,18 +132,15 @@ export class InputEmitter extends EventEmitter{
         y: this.currentPosition!.y,
       })
   
-    }
-    // const wo = this.getMousePosition(event);
-
-    // this.emit(EventType.MouseDownEvent, {
-    //   x: wo.x,
-    //   y: wo.y,
-    // })
   }
 
   onMouseUp(event: MouseEvent) {
-    this.selected = undefined;
     this.setCurrentPosition(event);
+    if((this.clickedObjects?.length??0)>0){
+      this.clickedObjects!.forEach(item => item.userData.selfClass.mouseUpHandler(this.currentPosition))
+      this.clickedObjects = undefined;
+      return
+    }
 
     this.emit(EventType.MouseUpEvent, {
       x: this.currentPosition!.x,

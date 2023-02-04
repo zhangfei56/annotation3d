@@ -163,15 +163,20 @@ class Rect2D extends BaseShape {
     }
   }
 
-  protected mouseMoveHandler(): void {
-    throw new Error('Method not implemented.');
+  public mouseMoveHandler(point: Point2D): void {
+    this.showAssistPoint()
   }
-  protected mouseDownHandler(): void {
-    throw new Error('Method not implemented.');
+  public mouseDownHandler(point: Point2D): void {
+    this.clicked = true
   }
-  protected mouseUpHandler(): void {
-    throw new Error('Method not implemented.');
+  public mouseUpHandler(point: Point2D): void {
+    this.clicked = false
   }
-
+  public mouseEnterHandler(){
+    this.showAssistPoint()
+  }
+  public mouseLeaveHandler(){
+    this.hideAssistPoint()
+  }
 }
 export default Rect2D;

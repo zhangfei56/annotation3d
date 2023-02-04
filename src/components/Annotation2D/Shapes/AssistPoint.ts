@@ -11,18 +11,9 @@ export enum AssistDirectionEnum {
 }
 
 export default class AssistPoint extends BaseShape {
-  protected mouseMoveHandler(): void {
-    throw new Error('Method not implemented.');
-  }
-  protected mouseDownHandler(): void {
-    throw new Error('Method not implemented.');
-  }
-  protected mouseUpHandler(): void {
-    throw new Error('Method not implemented.');
-  }
-
   private sphere;
   private pointMoveCallback;
+  private parent
 
   public constructor(position: THREE.Vector3, parent: any, fn: any){
     super();
@@ -30,10 +21,11 @@ export default class AssistPoint extends BaseShape {
     const material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
     this.sphere = new THREE.Mesh( geometry, material );
     this.sphere.position.set(position.x, position.y, position.z)
-    this.sphere.userData.selfClass = parent
-    this.sphere.userData.pointMove = this.pointMove.bind(this)
+    this.parent = parent
     this.sphere.visible =false
     this.pointMoveCallback = fn
+    this.sphere.userData.selfClass = this
+
   }
 
   public pointMove(point: Point2D){
@@ -55,5 +47,25 @@ export default class AssistPoint extends BaseShape {
     this.sphere.position.set(position.x, position.y, position.z);
   }
 
+  public mouseMoveHandler(point: Point2D): void {
+    if(this.clicked) {
+      this.pointMoveCallback(point)
+    }else{
+      this.parent.showAssistPoint()
+    }
+  }
 
+  public mouseDownHandler(point: Point2D): void {
+    this.clicked = true
+  }
+  public mouseUpHandler(point: Point2D): void {
+    this.clicked = false
+  }
+
+  public mouseEnterHandler(){
+    this.parent.showAssistPoint()
+  }
+  public mouseLeaveHandler(){
+
+  }
 }

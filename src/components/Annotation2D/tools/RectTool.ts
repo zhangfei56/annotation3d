@@ -30,7 +30,6 @@ export class RectTool {
 
 
   onMouseMove(point: Point2D){
-    console.log("rect tool onMouseMove", point)
     if(this.rect2d){
       this.rect2d.changeMaxPoint( point.x, point.y)
     }

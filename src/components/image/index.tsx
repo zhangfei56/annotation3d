@@ -5,7 +5,7 @@ type Props = {
   width: number;
   height: number;
 }
-import ThreeDeeRender from '../ThreeDeeRender'
+import Annotation2D from '../Annotation2D'
 
 function ImageAnnotation(props: Props): JSX.Element {
   const { width, height } = props
@@ -14,7 +14,7 @@ function ImageAnnotation(props: Props): JSX.Element {
 
   return <>
     <p>header</p>
-    <ThreeDeeRender height={height} width={width} />
+    <Annotation2D height={height} width={width} />
   </>
 }
 export default ImageAnnotation
