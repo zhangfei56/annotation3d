@@ -7,6 +7,9 @@ import pcdUrl from '../../assets/frm.pcd'
 import imageUrl from '../../assets/11.png'
 import axios from 'axios'
 import { getReader } from './ThreeDee/fieldReaders'
+import { DynamicBufferGeometry } from './ThreeDee/DynamicBufferGeometry'
+import { getColorConverter } from './ThreeDee/colors'
+import Renderer from './Renderer'
 
 
 export type PointField = Readonly<{
@@ -27,15 +30,6 @@ export enum DATATYPE {
   UINT32 = 6,
   FLOAT32 = 7,
   FLOAT64 = 8,
-  CAPNP_INT8 = 11,
-  CAPNP_UINT8 = 12,
-  CAPNP_INT16 = 13,
-  CAPNP_UINT16 = 14,
-  CAPNP_INT32 = 15,
-  CAPNP_UINT32 = 16,
-  CAPNP_FLOAT32 = 17,
-  CAPNP_FLOAT64 = 18,
-  CAPNP_UINT64 = 19,
 }
 
 function toDatatype(type: string, size: number) {
@@ -62,8 +56,9 @@ function toDatatype(type: string, size: number) {
       throw new Error(`Unknow Datatype in type='${type}' and size=${size}`);
   }
 }
+const tempColor = { r: 0, g: 0, b: 0, a: 0 };
 
-export async function loadPcd() {
+export async function loadPcd(renderder: Renderer) {
   const res = await axios.get(pcdUrl, {responseType: 'arraybuffer'})
   const buf = res.data
   
@@ -101,7 +96,63 @@ export async function loadPcd() {
       colorReader = getReader(fieldObj, stride)
     }
   }
+  const geometry = createGeometry(THREE.DynamicDrawUsage);
 
+  const material = new THREE.PointsMaterial({
+    vertexColors: true,
+    size: 1,
+    sizeAttenuation: false,
+    // transparent,
+    // The sorting issues caused by writing semi-transparent pixels to the depth buffer are less
+    // distracting for point clouds than the self-sorting artifacts when depth writing is disabled
+    depthWrite: true,
+  });
+
+  const points = createPoints(
+    geometry,
+    material,
+  );
+
+  const pointCount = header.points
+  const pointStep = stride
+
+  geometry.resize(pointCount)
+  const positionAttribute = geometry.attributes.position!;
+
+  const colorAttribute = geometry.attributes.color
+
+  const colorConverter = getColorConverter(
+    {
+      colorMode: 'colormap',
+      colorMap: 'rainbow',
+      flatColor: '',
+      gradient: ['', ''],
+      explicitAlpha: 0
+    },
+    0,
+    80,
+  );
+  
+  const view = new DataView(content.buffer, content.byteOffset, content.byteLength);
+  for (let i = 0; i < pointCount; i++) {
+    const pointOffset = i * pointStep;
+    const x = xReader?.(view, pointOffset) ?? 0;
+    const y = yReader?.(view, pointOffset) ?? 0;
+    const z = zReader?.(view, pointOffset)?? 0;
+    positionAttribute.setXYZ(i, x, y, z);
+
+    const colorValue = colorReader?.(view, pointOffset) ?? 0;
+    colorConverter(tempColor, colorValue);
+    colorAttribute.setXYZW(i, tempColor.r, tempColor.g, tempColor.b, tempColor.a);
+  }
+  positionAttribute.needsUpdate = true;
+  colorAttribute.needsUpdate = true;
+  geometry.computeBoundingSphere();
+
+  renderder.add(points)
+
+  renderder.render()
+  
   // 
 
   return fieldObjs
@@ -109,4 +160,24 @@ export async function loadPcd() {
 
 function getReaders(fieldObjs: PointField[]){
 
+}
+
+
+export function createGeometry(usage: THREE.Usage): DynamicBufferGeometry {
+  const geometry = new DynamicBufferGeometry(usage);
+  geometry.name = `PointScans:geometry`;
+  geometry.createAttribute("position", Float32Array, 3);
+  geometry.createAttribute("color", Uint8Array, 4, true);
+  return geometry;
+}
+export function createPoints(
+  geometry: DynamicBufferGeometry,
+  material: THREE.Material,
+): THREE.Points {
+  const points = new THREE.Points(geometry, material);
+  // We don't calculate the bounding sphere for points, so frustum culling is disabled
+  points.frustumCulled = false;
+  points.name = `PointCloud:points`;
+
+  return points;
 }

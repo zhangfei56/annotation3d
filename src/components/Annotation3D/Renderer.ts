@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 
+import { OrbitControls } from './ThreeDee/OrbitControls';
 export default class Renderer {
 
   private readonly canvas: HTMLCanvasElement;
@@ -18,16 +19,19 @@ export default class Renderer {
       antialias: true,
     });
     this.scene = new THREE.Scene();
-    this.camera =  new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    this.camera.position.set(0,0, 10)
+    this.camera =  new THREE.PerspectiveCamera( 50, canvas.width / canvas.height, 0.1, 1000 );
+    // this.camera = new THREE.OrthographicCamera()
+    this.camera.position.set(0,0, 40)
 
     // this.camera.lookAt(new THREE.Vector3(0,1,1))
     this.camera.updateMatrixWorld()
-    const box =  new THREE.BoxGeometry(1,2,3)
-    const mater = new THREE.MeshBasicMaterial( {color: 'red'})
-    const s = new THREE.Mesh(box, mater)
-    this.scene.add(s)
+    // const box =  new THREE.BoxGeometry(1,1,1)
+    // const mater = new THREE.MeshBasicMaterial( {color: 'red'})
+    // const s = new THREE.Mesh(box, mater)
+    // this.scene.add(s)
 
+    const controls = new OrbitControls( this.camera, this.gl.domElement );
+    controls.addEventListener( 'change', this.render.bind(this) ); // call this only in static scenes (i.e., if there is no animation loop)
 
     this.gl.render(this.scene, this.camera);
 
@@ -50,7 +54,7 @@ export default class Renderer {
   public render(){
     // if has performance issue use throttle instead
     
-    // this.gl.render(this.scene, this.camera);
+    this.gl.render(this.scene, this.camera);
   }
 
   public remove(obj: THREE.Object3D){

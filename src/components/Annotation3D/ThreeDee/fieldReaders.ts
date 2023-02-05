@@ -2,12 +2,29 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import { NumericType, PackedElementField } from "@foxglove/schemas";
+import { NumericType, PackedElementField } from "./schemas";
 
-import { PointField, PointFieldType } from "../../ros";
 
 export type FieldReader = (view: DataView, pointOffset: number) => number;
 
+export type PointField = {
+  name: string;
+  offset: number;
+  datatype: number;
+  count: number;
+};
+
+export enum PointFieldType {
+  UNKNOWN = 0,
+  INT8 = 1,
+  UINT8 = 2,
+  INT16 = 3,
+  UINT16 = 4,
+  INT32 = 5,
+  UINT32 = 6,
+  FLOAT32 = 7,
+  FLOAT64 = 8,
+}
 // eslint-disable-next-line @foxglove/no-boolean-parameters
 function int8Reader(fieldOffset: number, normalize: boolean): FieldReader {
   return (view: DataView, pointOffset: number) => {

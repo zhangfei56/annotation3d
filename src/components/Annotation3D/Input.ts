@@ -98,24 +98,12 @@ export class InputEmitter extends EventEmitter{
         x:  this.currentPosition!.x,
         y:  this.currentPosition!.y,
       })
-  
-    // console.log("clickedMouse", clickedMouse)
-    // if (clickedMouse) {
-    //   event.preventDefault();
-    //   const camera = this.renderer!.getCamera()
 
-    //   camera.left = camera.left - event.movementX;
-    //   camera.right = camera.right - event.movementX
-    //   camera.top = camera.top + event.movementY
-    //   camera.bottom = camera.bottom + event.movementY
-
-    //   camera.updateProjectionMatrix();
-    //   this.renderer!.render()
-    // }
   }
 
   private onMouseDown(event: MouseEvent) {
     this.setCurrentPosition(event)
+    console.log("currentPosition",this.currentPosition)
 
 
 

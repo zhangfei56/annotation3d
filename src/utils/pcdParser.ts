@@ -56,7 +56,7 @@ export type PCDHeader = {
 export type PCDInfo = {
   originHeader?: PCDHeader;
   header: PCDHeader;
-  content: ArrayBufferLike;
+  content: ArrayBufferView;
 };
 
 export function parsePCD(data: ArrayBufferLike): PCDInfo {
