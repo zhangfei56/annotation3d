@@ -8,20 +8,18 @@ import { generateUUID } from 'three/src/math/MathUtils';
 import { BaseShape } from './BaseShape';
 
 
+const ScaleUnit = new THREE.Vector3(1, 1, 1);
 
 class Box3D {
 
-  private renderder: Renderer;
-  private input: InputEmitter;
-
   private color = 0x0000ff;
 
-  public box: THREE.Object3D;
+  public box: THREE.Mesh;
+  
+  public _scale: THREE.Vector3;
 
-  public constructor( renderder: Renderer, input: InputEmitter) {
-    this.input = input;
-    this.renderder = renderder;
-
+  public constructor(scale?: THREE.Vector3) {
+    this._scale = scale ?? ScaleUnit;
     const boxGeometry = new THREE.BoxGeometry(1,1,1)
 
     const faceMaterial = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.DoubleSide , vertexColors: false})
@@ -30,23 +28,20 @@ class Box3D {
     faceMaterial.opacity = 0.5 
 
     this.box = new THREE.Mesh(boxGeometry, faceMaterial)
-    // this.box.applyQuaternion(new THREE.Quaternion(1,3,4,1))
-    this.box.rotateX(1)
-    this.box.rotateY(1)
-    this.box.rotateZ(1)
-    this.input.addListerObject(this.box)
+    this.box.scale.set(this._scale.x, this._scale.y, this._scale.z)
 
     this.box.userData.selfClass = this
-    this.renderder.add(this.box)
 
-    this.renderder.render()
   }
 
   public changeSize(scale: THREE.Vector3) :void {
     //
     this.box.scale.set(scale.x, scale.y, scale.z)
 
-    this.render()
+    this.box.updateMatrix()
+
+    this.box.updateMatrixWorld()
+
   }
 
 
@@ -54,7 +49,7 @@ class Box3D {
   public render() {
     
 
-    this.renderder.render()
+    // this.renderder.render()
   }
 
 }

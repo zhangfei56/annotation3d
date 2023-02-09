@@ -22,7 +22,8 @@ export enum MouseLevel {
 }
 export class InputEmitter extends EventEmitter{
   private canvas: HTMLCanvasElement;
-  private renderer: Renderer
+  private camera: THREE.Camera
+
   private raycaster: THREE.Raycaster;
   private listenerObjects: THREE.Object3D[] = [];
   private clickedObjects: THREE.Object3D[] | undefined;
@@ -30,11 +31,11 @@ export class InputEmitter extends EventEmitter{
 
   private currentPosition:  THREE.Vector3 | undefined
 
-  public constructor(canvas: HTMLCanvasElement, renderer: Renderer){
+  public constructor(canvas: HTMLCanvasElement, camera: THREE.Camera){
     super()
     this.canvas = canvas;
 
-    this.renderer = renderer;
+    this.camera = camera;
 
     this.canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
     this.canvas.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -60,9 +61,9 @@ export class InputEmitter extends EventEmitter{
     mouse.x = (event.offsetX / this.canvas.width) * 2 - 1;
     mouse.y = - (event.offsetY / this.canvas.height) * 2 + 1;
     const stdVector = new THREE.Vector3(mouse.x, mouse.y, 0);
-    this.currentPosition = stdVector.unproject(this.renderer!.getCamera())
+    this.currentPosition = stdVector.unproject(this.camera)
     
-    this.raycaster.setFromCamera(mouse, this.renderer!.getCamera());
+    this.raycaster.setFromCamera(mouse, this.camera);
   }
   
   onMouseMove(event: MouseEvent) {
@@ -72,7 +73,7 @@ export class InputEmitter extends EventEmitter{
 
 
       if((this.clickedObjects?.length??0)>0){
-        this.clickedObjects!.forEach(item => item.userData.selfClass.mouseMoveHandler(this.currentPosition))
+        this.clickedObjects!.forEach(item => item.userData.selfClass.mouseMoveHandler?.(this.currentPosition))
         return
       }
 
@@ -83,14 +84,14 @@ export class InputEmitter extends EventEmitter{
       let movingObjects: THREE.Object3D[] = []
       if (listerIntersections.length > 0) {
         movingObjects = listerIntersections.map(item => item.object)
-        movingObjects.forEach(item => item.userData.selfClass.mouseMoveHandler(this.currentPosition))
+        movingObjects.forEach(item => item.userData.selfClass.mouseMoveHandler?.(this.currentPosition))
       }
 
       enterObjects = movingObjects.filter(item => !this.movedObjects.includes(item))
-      enterObjects.forEach(item => item.userData.selfClass.mouseEnterHandler(this.currentPosition))
+      enterObjects.forEach(item => item.userData.selfClass.mouseEnterHandler?.(this.currentPosition))
 
       leaveObjects = this.movedObjects.filter(item => !movingObjects.includes(item))
-      leaveObjects.forEach(item => item.userData.selfClass.mouseLeaveHandler(this.currentPosition))
+      leaveObjects.forEach(item => item.userData.selfClass.mouseLeaveHandler?.(this.currentPosition))
 
       this.movedObjects = movingObjects
 
@@ -105,13 +106,11 @@ export class InputEmitter extends EventEmitter{
     this.setCurrentPosition(event)
     console.log("currentPosition",this.currentPosition)
 
-
-
       const listerIntersections = this.raycaster.intersectObjects(this.listenerObjects, true);
 
       if (listerIntersections.length > 0) {
         this.clickedObjects = listerIntersections.map(item => item.object)
-        this.clickedObjects.forEach(item => item.userData.selfClass.mouseDownHandler(this.currentPosition))
+        this.clickedObjects.forEach(item => item.userData.selfClass.mouseDownHandler?.(this.currentPosition))
         return
       }
 
@@ -125,7 +124,7 @@ export class InputEmitter extends EventEmitter{
   onMouseUp(event: MouseEvent) {
     this.setCurrentPosition(event);
     if((this.clickedObjects?.length??0)>0){
-      this.clickedObjects!.forEach(item => item.userData.selfClass.mouseUpHandler(this.currentPosition))
+      this.clickedObjects!.forEach(item => item.userData.selfClass.mouseUpHandler?.(this.currentPosition))
       this.clickedObjects = undefined;
       return
     }

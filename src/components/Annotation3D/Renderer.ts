@@ -21,7 +21,7 @@ export default class Renderer {
     this.scene = new THREE.Scene();
     this.camera =  new THREE.PerspectiveCamera( 50, canvas.width / canvas.height, 0.1, 1000 );
     // this.camera = new THREE.OrthographicCamera()
-    this.camera.position.set(0,0, 40)
+    this.camera.position.set(0,0, 20)
 
     // this.camera.lookAt(new THREE.Vector3(0,1,1))
     this.camera.updateMatrixWorld()
