@@ -60,7 +60,11 @@ export class InputEmitter extends EventEmitter{
     const mouse: { x: number; y: number } = { x: 0, y: 0 };
     mouse.x = (event.offsetX / this.canvas.width) * 2 - 1;
     mouse.y = - (event.offsetY / this.canvas.height) * 2 + 1;
-    const stdVector = new THREE.Vector3(mouse.x, mouse.y, 0);
+    let mouseZ= 0
+    if(this.camera instanceof THREE.OrthographicCamera) {
+      // mouseZ = (this.camera.near + this.camera.far) / (this.camera.near - this.camera.far)
+    }
+    const stdVector = new THREE.Vector3(mouse.x, mouse.y, mouseZ);
     this.currentPosition = stdVector.unproject(this.camera)
     
     this.raycaster.setFromCamera(mouse, this.camera);
@@ -78,6 +82,9 @@ export class InputEmitter extends EventEmitter{
       }
 
       const listerIntersections = this.raycaster.intersectObjects(this.listenerObjects, true);
+      if(listerIntersections.length>0){
+        console.log("selected")
+      }
 
       let enterObjects = []
       let leaveObjects = []
@@ -104,7 +111,8 @@ export class InputEmitter extends EventEmitter{
 
   private onMouseDown(event: MouseEvent) {
     this.setCurrentPosition(event)
-    console.log("currentPosition",this.currentPosition)
+
+    // console.log("currentPosition",this.currentPosition)
 
       const listerIntersections = this.raycaster.intersectObjects(this.listenerObjects, true);
 
