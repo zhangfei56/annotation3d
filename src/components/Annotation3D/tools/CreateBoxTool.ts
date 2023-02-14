@@ -1,11 +1,11 @@
 import { InputEmitter, EventType, Point2D, MouseLevel } from "../Input";
-import  Rect2D  from "../Shapes/Rect2D"
+import  Box3D  from "../Shapes/Box3D"
 import Renderer from "../Renderer";
 
-export class RectTool {
+export class CreateBoxTool {
   private input: InputEmitter
   private selectedOne: boolean = false
-  private rect2d: Rect2D | null = null
+  private box3d: Box3D | null = null
   private renderer: Renderer
 
   private saved = []
@@ -23,15 +23,15 @@ export class RectTool {
 
   onMouseDown(point: Point2D){
     console.log("onMouseDown", point)
-    if(!this.rect2d){
-      this.rect2d = new Rect2D(point.x, point.y, point.x, point.y, this.renderer, this.input)
+    if(!this.box3d){
+      this.box3d = new Box3D(point.x, point.y, point.x, point.y, this.renderer, this.input)
     }
   }
 
 
   onMouseMove(point: Point2D){
-    if(this.rect2d){
-      this.rect2d.changeMaxPoint( point.x, point.y)
+    if(this.box3d){
+      // this.box3d.changeMaxPoint( point.x, point.y)
     }
   }
 
@@ -39,7 +39,7 @@ export class RectTool {
       // save
       // this.rect2d?.hideAssistPoint()
 
-      this.rect2d =null
+      this.box3d =null
   }
 
 }

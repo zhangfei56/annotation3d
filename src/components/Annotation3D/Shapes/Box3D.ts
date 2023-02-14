@@ -1,4 +1,3 @@
-import { Renderable } from '../Renderable'
 import Renderer from '../Renderer';
 import * as THREE from 'three';
 import { InputEmitter, Point2D } from '../Input';

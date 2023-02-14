@@ -1,10 +1,8 @@
 
 import EventEmitter from 'eventemitter3'
-import { KeyboardEvent } from 'react';
 import * as THREE from 'three'
 
 export const EventType = {
-  ImageMoveEvent: 'ImageMoveEvent',
   MouseDownEvent: 'MouseDownEvent',
   MouseUpEvent: "MouseUpEvent",
   MouseMoveEvent: "MouseMoveEvent",
@@ -41,7 +39,7 @@ export class InputEmitter extends EventEmitter{
 
     this.canvas.addEventListener("pointermove", this.onPointerMove);
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
-    this.canvas.addEventListener("keydown", this.onKeyDown);
+    // this.canvas.addEventListener("mousedown", this.onMouseDown);
     this.raycaster = new THREE.Raycaster()
     this.raycaster.params.Line!.threshold = 0.02;
   }
@@ -95,10 +93,6 @@ export class InputEmitter extends EventEmitter{
     this.canvas.releasePointerCapture(event.pointerId);
     this.canvas.removeEventListener("pointerup", this.onPointerUp)
     this.emit(EventType.MouseUpEvent, this.unitCursorCoords, this.worldPosition, event)
-  }
-
-  private onKeyDown = (event: KeyboardEvent)=> {
-    
   }
   
 }

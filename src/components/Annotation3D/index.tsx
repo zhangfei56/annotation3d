@@ -3,7 +3,7 @@ import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { CameraHelper, Vector2 } from 'three';
 import imageUrl from '../../assets/11.png'
 import { InputEmitter } from './Input'
-import { RectTool } from './tools/RectTool'
+import { CreateBoxTool } from './tools/CreateBoxTool'
 import { loadPcd } from './loadPcd'
 import { VertexNormalsHelper } from './ThreeDee/VertexNormalsHelper'
 
@@ -12,10 +12,8 @@ type Props = {
   height: number;
 }
 import Renderer from './Renderer';
-import Rect2D from './Shapes/Rect2D';
 import Box3D from './Shapes/Box3D';
-import { OrbitControls } from './ThreeDee/OrbitControls';
-import { BoxFaceEnum, EditBoxTools } from './tools/EditBoxTools';
+import { BoxFaceEnum, EditBoxTool } from './tools/EditBoxTool';
 function Annotation3D(props: Props): JSX.Element {
   const { width, height } = props
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
@@ -64,7 +62,7 @@ function Annotation3D(props: Props): JSX.Element {
       renderer.add(rect2d.box);
       const helper = new VertexNormalsHelper(rect2d.box, 2, 0x00ff00, 1)
       renderer.add(helper)
-      editBoxTool = new EditBoxTools(rect2d, canvas2, renderer, 1, BoxFaceEnum.Front)
+      editBoxTool = new EditBoxTool(rect2d, canvas2, renderer, 1, BoxFaceEnum.Left)
       editBoxTool.render()
 
     }

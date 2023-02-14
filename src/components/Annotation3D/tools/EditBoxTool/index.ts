@@ -1,9 +1,9 @@
 
 import * as THREE from 'three'
-import { EventType, InputEmitter, Point2D } from '../Input';
-import Renderer from '../Renderer';
-import { BaseShape } from '../Shapes/BaseShape';
-import Box3D from '../Shapes/Box3D';
+import { EventType, InputEmitter, Point2D } from './Input';
+import Renderer from '../../Renderer';
+import Box3D from '../../Shapes/Box3D';
+import { HelperLineConfig, DashedHelperLine } from './DashedHelperLine'
 
  // 面的法线顺序 右 左 上 下 前 后
   // 0, 8, 16
@@ -21,49 +21,27 @@ export enum BoxFaceEnum {
 }
 const DashedMaterial = new THREE.LineDashedMaterial( {
 	color: '#000',
-	linewidth: 0.5,
+	linewidth: 0.05,
 	scale: 1,
-	dashSize: 0.5,
-	gapSize: 0.2,
+	dashSize: 0.05,
+	gapSize: 0.02,
 } );
 
 const RedDashedMaterial = new THREE.LineDashedMaterial( {
 	color: 'red',
-	linewidth: 0.5,
+	linewidth: 0.05,
 	scale: 1,
-	dashSize: 0.5,
-	gapSize: 0.2,
+	dashSize: 0.05,
+	gapSize: 0.02,
 } );
 
 const ZeroVector3  = new THREE.Vector3()
 
-const HelperLineConfig: {
-  [Direct: string] : {
-    x: 1 | -1 | undefined,
-    y: 1 | -1 | undefined,
-  }
-} = {
-  Up: {
-    x: undefined,
-    y: 1
-  },
-  Down: {
-    x: undefined,
-    y: -1
-  },
-  Left: {
-    x: -1,
-    y: undefined,
-  },
-  Right: {
-    x: 1,
-    y: undefined
-  }
-}
+type FaceDirect = keyof typeof HelperLineConfig
 
 type xyz = 'x' | 'y' | 'z' 
 
-export class EditBoxTools {
+export class EditBoxTool {
   private _box: Box3D;
   private _mainRenderer: Renderer;
   private _level: number;
@@ -86,13 +64,13 @@ export class EditBoxTools {
 
     this._camera = new THREE.OrthographicCamera()
     this._camera.near = 1
-    this._camera.far = 10
+    this._camera.far = 30
     // this._camera.layers.enable(this._level)
     this._input = new InputEmitter(canvas, this._camera)
 
 
-    // const cameraHelper = new THREE.CameraHelper(this._camera);
-    // this._mainRenderer.add(cameraHelper)
+    const cameraHelper = new THREE.CameraHelper(this._camera);
+    this._mainRenderer.add(cameraHelper)
     this._tempHelperLine = new DashedHelperLine('Up', [ZeroVector3, ZeroVector3], RedDashedMaterial)
     this._tempHelperLine.getLine().visible = false
     this._mainRenderer.scene.add(this._tempHelperLine.getLine())
@@ -114,8 +92,8 @@ export class EditBoxTools {
   private clicked: boolean = false;
 
   private createHelperLine() {
-    Object.keys(HelperLineConfig).forEach(key =>{
-      const helperLine=new DashedHelperLine(key, [ZeroVector3, ZeroVector3], DashedMaterial)
+    Object.keys(HelperLineConfig).forEach((key) =>{
+      const helperLine=new DashedHelperLine(key as FaceDirect, [ZeroVector3, ZeroVector3], DashedMaterial)
       this._mainRenderer.scene.add(helperLine.getLine())
       this.helperLines.push(helperLine)
     })
@@ -145,7 +123,7 @@ export class EditBoxTools {
 
 
 
-  private handleMouseDown = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: MouseEvent) => {
+  private handleMouseDown = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: PointerEvent) => {
     for(let i = 0; i < this.helperLines.length; i++){
       const helperLine = this.helperLines[i]
       const intersects = this._input.getRaycaster().intersectObject(helperLine.getLine())
@@ -161,9 +139,8 @@ export class EditBoxTools {
     }
   }
 
-  private handleMouseMove = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: MouseEvent) => {
+  private handleMouseMove = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: PointerEvent) => {
     if(this.clicked){
-      console.log(unitCursorCoords, "handleMouseMove clicked")
       const direction = this._tempHelperLine.direction;
       const helperConfig = HelperLineConfig[direction];
       const cameraX= unitCursorCoords.x
@@ -188,18 +165,24 @@ export class EditBoxTools {
     const intersects = this._input.getRaycaster().intersectObjects(helperLines)
     if(intersects.length > 0) {
       intersects[0].object.visible = true
+      const visibleLine = this.helperLines.find(item => item.getLine().visible)
+      if(['Up', 'Down'].includes(visibleLine!.direction)){
+        document.body.style.cursor = 'row-resize'
+      }else{
+        document.body.style.cursor = 'col-resize'
+      }
       this._gl.render(this._mainRenderer.scene, this._camera)
     }else{
       const visibleLines= this.helperLines.filter(line=> line.getLine().visible)
       visibleLines.forEach(line=>{
         line.getLine().visible = false
       })
+      document.body.style.cursor = ''
       this._gl.render(this._mainRenderer.scene, this._camera)
     }
-
   }
 
-  private handleMouseUp = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: MouseEvent)=> {
+  private handleMouseUp = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: PointerEvent)=> {
     if(this.clicked){
       const faceSides = this.getFaceLengthAndWidth()
       const maxLineSize = Math.max(...faceSides)
@@ -224,6 +207,7 @@ export class EditBoxTools {
       updateScale[changeAttribute] = attributeSize
       this._box.changeSize(updateScale)
 
+      this._tempHelperLine.getLine().visible = false
 
       this.render()
       this._mainRenderer.render()
@@ -324,14 +308,14 @@ export class EditBoxTools {
 
   public render() {
     // this._box.updateMatrix()
-    const tempVector3 = this.getBoxMovePosition(this._boxFace, 5)
+    const tempVector3 = this.getBoxMovePosition(this._boxFace, 15)
     this._camera.position.set(tempVector3.x, tempVector3.y, tempVector3.z)
 
     // update direction
     this._camera.setRotationFromQuaternion(this._box.box.quaternion)
     switch (this._boxFace) {
       case BoxFaceEnum.Left:
-        this._camera.rotateY(Math.PI / 2) 
+        this._camera.rotateY(-Math.PI / 2) 
         break;
       case BoxFaceEnum.Up:
         this._camera.rotateX(-Math.PI / 2)
@@ -359,48 +343,5 @@ export class EditBoxTools {
     this._gl.render(this._mainRenderer.scene, this._camera)
     this._mainRenderer.render()
   }
-
-
-
 }
 
-class DashedHelperLine extends BaseShape {
-  private _line: THREE.Line
-  private _points: THREE.Vector3[]
-
-  public direction: keyof typeof HelperLineConfig
-
-
-  constructor(direction: keyof typeof HelperLineConfig, points: THREE.Vector3[], material: THREE.LineDashedMaterial ){
-    super()
-    this._points = points
-    this.direction = direction
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    
-    this._line = new THREE.LineSegments( geometry, material );
-    this._line.visible = false
-    this._line.computeLineDistances()
-  }
-
-  public getLine(): THREE.Line{
-    return this._line;
-  }
-
-  public updatePoints(points: THREE.Vector3[]): void{
-    this._points = points;
-    this._line.geometry.setFromPoints(points);
-    this._line.geometry.getAttribute('position').needsUpdate = true;
-    this._line.geometry.computeBoundingSphere()
-    this._line.geometry.computeBoundingBox()
-    this._line.computeLineDistances()
-  }
-
-  public mouseMoveHandler(point: Point2D){
-    // console.log('mouseMoveHandler', point);
-  }
-
-  public getPoints(): THREE.Vector3[]{
-    return this._points
-  }
-
-}

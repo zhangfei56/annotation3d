@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 
-import { OrbitControls } from './ThreeDee/OrbitControls';
+// import { OrbitControls } from './ThreeDee/OrbitControls';
 export default class Renderer {
 
   private readonly canvas: HTMLCanvasElement;
@@ -30,8 +30,8 @@ export default class Renderer {
     // const s = new THREE.Mesh(box, mater)
     // this.scene.add(s)
 
-    const controls = new OrbitControls( this.camera, this.gl.domElement );
-    controls.addEventListener( 'change', this.render.bind(this) ); // call this only in static scenes (i.e., if there is no animation loop)
+    // const controls = new OrbitControls( this.camera, this.gl.domElement );
+    // controls.addEventListener( 'change', this.render.bind(this) ); // call this only in static scenes (i.e., if there is no animation loop)
 
     this.gl.render(this.scene, this.camera);
 
