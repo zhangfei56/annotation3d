@@ -64,7 +64,7 @@ function Annotation3D(props: Props): JSX.Element {
       renderer.add(rect2d.box);
       const helper = new VertexNormalsHelper(rect2d.box, 2, 0x00ff00, 1)
       renderer.add(helper)
-      editBoxTool = new EditBoxTools(rect2d.box, canvas2, renderer, 1, BoxFaceEnum.Front)
+      editBoxTool = new EditBoxTools(rect2d, canvas2, renderer, 1, BoxFaceEnum.Front)
       editBoxTool.render()
 
     }

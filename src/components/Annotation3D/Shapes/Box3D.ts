@@ -16,11 +16,9 @@ class Box3D extends BaseShape{
 
   public box: THREE.Mesh;
   
-  public scale: THREE.Vector3;
-
   public constructor(scale?: THREE.Vector3) {
     super()
-    this.scale = scale ?? ScaleUnit;
+    const scaleTemp = scale ?? ScaleUnit;
     const boxGeometry = new THREE.BoxGeometry(1,1,1)
 
     const faceMaterial = new THREE.MeshBasicMaterial({ color: this.color, side: THREE.DoubleSide , vertexColors: false})
@@ -29,17 +27,16 @@ class Box3D extends BaseShape{
     faceMaterial.opacity = 0.5 
 
     this.box = new THREE.Mesh(boxGeometry, faceMaterial)
-    this.box.scale.set(this.scale.x, this.scale.y, this.scale.z)
+    this.changeSize(scaleTemp)
 
     this.box.userData.selfClass = this
 
   }
 
   public changeSize(scale: THREE.Vector3) :void {
-    //
     this.box.scale.set(scale.x, scale.y, scale.z)
 
-    this.box.rotateX(1)
+    // this.box.rotateX(1)
 
     this.box.updateMatrix()
     this.box.updateMatrixWorld()
