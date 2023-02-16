@@ -6,16 +6,20 @@ import { InputEmitter } from './Input'
 import { CreateBoxTool } from './tools/CreateBoxTool'
 import { loadPcd } from './loadPcd'
 import { VertexNormalsHelper } from './ThreeDee/VertexNormalsHelper'
+import { ClipContextProvider } from './providers/ClipContextProvider'
 
-type Props = {
-  width: number;
-  height: number;
-}
+
 import Renderer from './Renderer';
 import Box3D from './Shapes/Box3D';
-import { BoxFaceEnum, EditBoxTool } from './tools/EditBoxTool';
-function Annotation3D(props: Props): JSX.Element {
-  const { width, height } = props
+import { BoxFaceEnum, EditBoxFace } from './tools/EditBoxFace';
+import { ToolsManager } from './toolsManager';
+import MultiProvider from '../MultiProvider';
+import ClipContext from './context/ClipContext';
+import Sidebar from '../Sidebar';
+
+
+
+function Annotation3D(): JSX.Element {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
   const [canvas2, setCanvas2] = useState<HTMLCanvasElement | null>(null)
 
@@ -34,11 +38,9 @@ function Annotation3D(props: Props): JSX.Element {
   useEffect(() => {
     if (renderer) {
 
-      // input = new InputEmitter(canvas!, renderer);
-      // loadPcd(renderer)
-      // const rectTool = new RectTool(input, renderer)
-      // rectTool.init()
-
+      input = new InputEmitter(canvas!, renderer);
+      new ToolsManager(input, renderer)
+      loadPcd(renderer)
 
       renderer.render()
     }
@@ -50,42 +52,35 @@ function Annotation3D(props: Props): JSX.Element {
   let editBoxTool
 
 
-  // 面的法线顺序 左 右 上 下 前 后
-  // 0, 8, 16
-  // camera 
-  //camera.rotateY(Math.PI / 2) 
-  //camera.rotateX(-Math.PI / 2)
-  //
   function addRect() {
     if (renderer) {
       rect2d = new Box3D();
       renderer.add(rect2d.box);
       const helper = new VertexNormalsHelper(rect2d.box, 2, 0x00ff00, 1)
       renderer.add(helper)
-      editBoxTool = new EditBoxTool(rect2d, canvas2, renderer, 1, BoxFaceEnum.Left)
+      editBoxTool = new EditBoxFace(rect2d, canvas2, renderer, 1, BoxFaceEnum.Left)
       editBoxTool.render()
 
     }
   }
-  function change() {
-    if (rect2d) {
-      rect2d.changeSize(new THREE.Vector3(1, 2, 3))
-      // rect2d.box.rotateX(1)
-      // rect2d.box.rotateY(1)
-      // rect2d.box.rotateZ(1)
 
-      // rect2d.box.updateWorldMatrix(false, true)
-      editBoxTool.render()
-      renderer.render()
-    }
-  }
 
-  return <>
-    <canvas ref={setCanvas} width={window.innerWidth / 2} height={window.innerHeight / 2}></canvas>
-    <button onClick={addRect}>click</button>
-    <button onClick={change}>change</button>
-    <canvas ref={setCanvas2} width={window.innerWidth / 2} height={window.innerHeight / 2}></canvas>
-  </>
+  return <MultiProvider
+    providers={[
+      <ClipContextProvider />
+    ]}
+  >
+    <div className="main">
+      <Sidebar></Sidebar>
+      <div>
+        {/* <canvas ref={setCanvas} width={window.innerWidth / 2} height={window.innerHeight / 2}></canvas>
+        <button onClick={addRect}>click</button>
+        <canvas ref={setCanvas2} width={window.innerWidth / 2} height={window.innerHeight / 2}></canvas> */}
+      </div>
+    </div>
+
+
+  </MultiProvider>
 }
 export default Annotation3D
 

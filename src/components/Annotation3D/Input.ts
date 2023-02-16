@@ -2,12 +2,13 @@
 import EventEmitter from 'eventemitter3'
 import { KeyboardEvent } from 'react';
 import * as THREE from 'three'
-
+import Renderder  from './Renderer'
 export const EventType = {
-  ImageMoveEvent: 'ImageMoveEvent',
-  MouseDownEvent: 'MouseDownEvent',
-  MouseUpEvent: "MouseUpEvent",
-  MouseMoveEvent: "MouseMoveEvent",
+  PointerDownEvent: 'PointerDownEvent',
+  PointerUpEvent: "PointerUpEvent",
+  PointerMoveEvent: "PointerMoveEvent",
+  WheelEvent: "WheelEvent",
+  KeyDownEvent: "KeyDownEvent"
 }
 
 export type Point2D = {
@@ -20,6 +21,7 @@ export enum MouseLevel {
   Plugin,
   AssistPoint
 }
+const XY_PLANE = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 export class InputEmitter extends EventEmitter{
   private canvas: HTMLCanvasElement;
   private camera: THREE.Camera
@@ -31,19 +33,25 @@ export class InputEmitter extends EventEmitter{
   private unitCursorCoords = new THREE.Vector2();
   private worldSpaceCursorCoords?: THREE.Vector3;
   
-  private worldPosition:  THREE.Vector3 | undefined
 
-  public constructor(canvas: HTMLCanvasElement, camera: THREE.Camera){
+
+  private lastDownTarget: EventTarget | undefined
+
+  public constructor(canvas: HTMLCanvasElement, renderer: Renderder){
     super()
     this.canvas = canvas;
 
-    this.camera = camera;
+    this.camera = renderer.getCamera()
 
     this.canvas.addEventListener("pointermove", this.onPointerMove);
-    this.canvas.addEventListener("pointerdown", this.onPointerDown);
-    this.canvas.addEventListener("keydown", this.onKeyDown);
+    document.addEventListener("pointerdown", this.onPointerDown);
+    document.addEventListener("keydown", this.onKeyDown);
+    document.addEventListener("wheel", this.onMouseWheel, { passive: false });
     this.raycaster = new THREE.Raycaster()
     this.raycaster.params.Line!.threshold = 0.02;
+
+    //
+    // this.tools.push(new OrbitControlTool(this, renderer,  this.camera, canvas))
   }
 
   public addListerObject(obj: THREE.Object3D)  {
@@ -59,13 +67,14 @@ export class InputEmitter extends EventEmitter{
 
   private setCurrentPosition(event: MouseEvent) {
     this.unitCursorCoords.x = (event.offsetX / this.canvas.width) * 2 - 1;
-    this.unitCursorCoords.y = - (event.offsetY / this.canvas.height) * 2 + 1;
-    let mouseZ= -1
-    if(this.camera instanceof THREE.OrthographicCamera) {
-      // mouseZ = (this.camera.near + this.camera.far) / (this.camera.near - this.camera.far)
-    }
-    const stdVector = new THREE.Vector3(this.unitCursorCoords.x, this.unitCursorCoords.y, mouseZ);
-    this.worldPosition = stdVector.unproject(this.camera)
+    this.unitCursorCoords.y = - (event.offsetY / this.canvas.height) * 2 + 1;   
+
+    this.worldSpaceCursorCoords =
+    this.raycaster.ray.intersectPlane(
+      XY_PLANE,
+      this.worldSpaceCursorCoords ?? new THREE.Vector3(),
+    ) ?? undefined;
+
     this.raycaster.setFromCamera(this.unitCursorCoords, this.camera);
   }
 
@@ -74,31 +83,49 @@ export class InputEmitter extends EventEmitter{
   }
   
   private onPointerMove =(event: PointerEvent)=> {
-    //event.preventDefault();
-    
+    event.preventDefault()
     this.setCurrentPosition(event)
+    
 
-    this.emit(EventType.MouseMoveEvent, this.unitCursorCoords, this.worldPosition, event)
+    this.emit(EventType.PointerMoveEvent, this.unitCursorCoords, this.worldSpaceCursorCoords, event)
   }
 
   private onPointerDown = (event: PointerEvent) =>{
-    this.setCurrentPosition(event)
-
-    this.emit(EventType.MouseDownEvent, this.unitCursorCoords, this.worldPosition, event)
+    if(this.lastDownTarget==this.canvas){
+      event.preventDefault()
+      this.setCurrentPosition(event)
   
-    this.canvas.setPointerCapture(event.pointerId)
-    this.canvas.addEventListener("pointerup", this.onPointerUp)
+      this.emit(EventType.PointerDownEvent, this.unitCursorCoords, this.worldSpaceCursorCoords, event)
+    
+      this.canvas.setPointerCapture(event.pointerId)
+      this.canvas.addEventListener("pointerup", this.onPointerUp)
+    }
+    this.lastDownTarget = event.target
+
   }
 
   private onPointerUp = (event: PointerEvent)=> {
+    event.preventDefault()
+
     this.setCurrentPosition(event);
     this.canvas.releasePointerCapture(event.pointerId);
     this.canvas.removeEventListener("pointerup", this.onPointerUp)
-    this.emit(EventType.MouseUpEvent, this.unitCursorCoords, this.worldPosition, event)
+    this.emit(EventType.PointerUpEvent, this.unitCursorCoords, this.worldSpaceCursorCoords, event)
   }
 
   private onKeyDown = (event: KeyboardEvent)=> {
+    if(this.lastDownTarget ==this.canvas){
+      event.preventDefault()
+
+      this.emit(EventType.KeyDownEvent,  event)
+    }
     
+  }
+
+  private onMouseWheel = (event: WheelEvent) => {
+    event.preventDefault()
+
+    this.emit(EventType.WheelEvent, event)
   }
   
 }

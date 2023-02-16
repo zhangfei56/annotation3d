@@ -1,0 +1,12 @@
+.mainBody{
+  min-height: 100vh;
+  display: flex;
+
+}
+
+.iconCol {
+  min-height: 100vh;
+
+  /* width: 20px; */
+}
+

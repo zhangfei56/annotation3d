@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 
-// import { OrbitControls } from './ThreeDee/OrbitControls';
+import { OrbitControls } from './ThreeDee/OrbitControls';
 export default class Renderer {
 
   private readonly canvas: HTMLCanvasElement;
@@ -63,5 +63,9 @@ export default class Renderer {
 
   public getCamera(){
     return this.camera;
+  }
+
+  public getDomElement(){
+    return this.canvas
   }
 }

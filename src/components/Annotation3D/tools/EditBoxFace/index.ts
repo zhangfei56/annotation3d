@@ -41,7 +41,7 @@ type FaceDirect = keyof typeof HelperLineConfig
 
 type xyz = 'x' | 'y' | 'z' 
 
-export class EditBoxTool {
+export class EditBoxFace {
   private _box: Box3D;
   private _mainRenderer: Renderer;
   private _level: number;
