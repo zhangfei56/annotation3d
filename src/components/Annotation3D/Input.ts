@@ -3,12 +3,14 @@ import EventEmitter from 'eventemitter3'
 import { KeyboardEvent } from 'react';
 import * as THREE from 'three'
 import Renderder  from './Renderer'
+import Box3D from './Shapes/Box3D';
 export const EventType = {
   PointerDownEvent: 'PointerDownEvent',
   PointerUpEvent: "PointerUpEvent",
   PointerMoveEvent: "PointerMoveEvent",
   WheelEvent: "WheelEvent",
-  KeyDownEvent: "KeyDownEvent"
+  KeyDownEvent: "KeyDownEvent",
+  ObjectChooseEvent: "ObjectChooseEvent"
 }
 
 export type Point2D = {
@@ -27,7 +29,7 @@ export class InputEmitter extends EventEmitter{
   private camera: THREE.Camera
 
   private raycaster: THREE.Raycaster;
-  private listenerObjects: THREE.Object3D[] = [];
+  private listenerObjects: Box3D[] = [];
 
   // [-1, 1]
   private unitCursorCoords = new THREE.Vector2();
@@ -54,7 +56,7 @@ export class InputEmitter extends EventEmitter{
     // this.tools.push(new OrbitControlTool(this, renderer,  this.camera, canvas))
   }
 
-  public addListerObject(obj: THREE.Object3D)  {
+  public addListerObject(obj: Box3D)  {
     this.listenerObjects.push(obj)
   }
 
@@ -99,6 +101,13 @@ export class InputEmitter extends EventEmitter{
     
       this.canvas.setPointerCapture(event.pointerId)
       this.canvas.addEventListener("pointerup", this.onPointerUp)
+
+      this.listenerObjects.forEach(listenerObj => {
+        const result = this.raycaster.intersectObject(listenerObj.box)
+        if(result.length){
+          this.emit(EventType.ObjectChooseEvent, listenerObj)
+        }
+      })
     }
     this.lastDownTarget = event.target
 

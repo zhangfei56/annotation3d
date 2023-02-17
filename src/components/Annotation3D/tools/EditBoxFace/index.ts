@@ -4,6 +4,7 @@ import { EventType, InputEmitter, Point2D } from './Input';
 import Renderer from '../../Renderer';
 import Box3D from '../../Shapes/Box3D';
 import { HelperLineConfig, DashedHelperLine } from './DashedHelperLine'
+import SceneManager from '../../SceneManager';
 
  // 面的法线顺序 右 左 上 下 前 后
   // 0, 8, 16
@@ -42,7 +43,7 @@ type FaceDirect = keyof typeof HelperLineConfig
 type xyz = 'x' | 'y' | 'z' 
 
 export class EditBoxFace {
-  private _box: Box3D;
+  private _box?: Box3D;
   private _mainRenderer: Renderer;
   private _level: number;
   private _camera: THREE.OrthographicCamera
@@ -51,15 +52,16 @@ export class EditBoxFace {
   private _gl : THREE.WebGLRenderer
   private _input: InputEmitter
   private _tempHelperLine: DashedHelperLine
+  private _sceneManager: SceneManager
 
   private helperLines: DashedHelperLine[] = []
 
-  constructor(box: Box3D, canvas: HTMLCanvasElement, renderer: Renderer, level: number, boxFace: BoxFaceEnum){
-    this._box = box;
-    this._level=  level;
+  constructor(canvas: HTMLCanvasElement, renderer: Renderer, level: number, boxFace: BoxFaceEnum, sceneManager: SceneManager){
+    this._level= level;
     this._mainRenderer = renderer;
     this._boxFace   = boxFace;
     this._canvas = canvas;
+    this._sceneManager = sceneManager;
 
 
     this._camera = new THREE.OrthographicCamera()
@@ -69,8 +71,8 @@ export class EditBoxFace {
     this._input = new InputEmitter(canvas, this._camera)
 
 
-    const cameraHelper = new THREE.CameraHelper(this._camera);
-    this._mainRenderer.add(cameraHelper)
+    // const cameraHelper = new THREE.CameraHelper(this._camera);
+    // this._mainRenderer.add(cameraHelper)
     this._tempHelperLine = new DashedHelperLine('Up', [ZeroVector3, ZeroVector3], RedDashedMaterial)
     this._tempHelperLine.getLine().visible = false
     this._mainRenderer.scene.add(this._tempHelperLine.getLine())
@@ -87,6 +89,10 @@ export class EditBoxFace {
     this._input.addListener(EventType.MouseUpEvent, this.handleMouseUp)
     this._input.addListener(EventType.MouseDownEvent, this.handleMouseDown)
     this._input.addListener(EventType.MouseMoveEvent, this.handleMouseMove)
+  }
+
+  public setBox(box: Box3D){
+    this._box = box
   }
 
   private clicked: boolean = false;
@@ -183,6 +189,9 @@ export class EditBoxFace {
   }
 
   private handleMouseUp = (unitCursorCoords: THREE.Vector2, worldPosition: THREE.Vector3, event: PointerEvent)=> {
+    if(!this._box){
+      return
+    }
     if(this.clicked){
       const faceSides = this.getFaceLengthAndWidth()
       const maxLineSize = Math.max(...faceSides)
@@ -289,6 +298,9 @@ export class EditBoxFace {
   }
 
   private getFaceLengthAndWidth(): number[]{
+    if(!this._box){
+      return []
+    }
     const attributes = this.getFaceAttributes()
     let sides = [this._box.box.scale[attributes[0]], this._box.box.scale[attributes[1]]]
     
@@ -296,17 +308,21 @@ export class EditBoxFace {
   }
 
   private getBoxMovePosition(face: BoxFaceEnum, distance: number): THREE.Vector3  {
-    const boxWorldNormalMatrix = new THREE.Matrix3().getNormalMatrix(this._box.box.matrixWorld)
+
+    const boxWorldNormalMatrix = new THREE.Matrix3().getNormalMatrix(this._box!.box.matrixWorld)
 
     // set camera position
     const tempVector3 = new THREE.Vector3()
-    tempVector3.fromBufferAttribute(this._box.box.geometry.attributes.normal, face.valueOf()*4)
-    const boxPosition = this._box.box.position.clone()
+    tempVector3.fromBufferAttribute(this._box!.box.geometry.attributes.normal, face.valueOf()*4)
+    const boxPosition = this._box!.box.position.clone()
     tempVector3.applyMatrix3(boxWorldNormalMatrix).normalize().multiplyScalar(distance).add(boxPosition)
     return tempVector3
   }
 
   public render() {
+    if(!this._box){
+      return
+    }
     // this._box.updateMatrix()
     const tempVector3 = this.getBoxMovePosition(this._boxFace, 15)
     this._camera.position.set(tempVector3.x, tempVector3.y, tempVector3.z)

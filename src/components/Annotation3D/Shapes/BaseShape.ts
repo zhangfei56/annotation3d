@@ -2,9 +2,7 @@
 import type { Point2D, } from '../Input';
 
 export abstract class BaseShape {
-  constructor(){
-    
-  }
+
   protected clicked: boolean = false;
   public mouseMoveHandler(point: Point2D): void {}
 
@@ -14,5 +12,7 @@ export abstract class BaseShape {
 
   public mouseEnterHandler(): void{}
   public mouseLeaveHandler(): void{}
+
+  public abstract getThreeObject(): THREE.Object3D;
 }
 

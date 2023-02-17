@@ -7,9 +7,10 @@ import pcdUrl from '../../assets/frm.pcd'
 import imageUrl from '../../assets/11.png'
 import axios from 'axios'
 import { getReader } from './ThreeDee/fieldReaders'
-import { DynamicBufferGeometry } from './ThreeDee/DynamicBufferGeometry'
-import { getColorConverter } from './ThreeDee/colors'
+import {PointCloud} from './Shapes/PointCloud'
 import Renderer from './Renderer'
+import { getColorConverter } from './ThreeDee/colors'
+import SceneManager from './sceneManager'
 
 
 export type PointField = Readonly<{
@@ -58,7 +59,7 @@ function toDatatype(type: string, size: number) {
 }
 const tempColor = { r: 0, g: 0, b: 0, a: 0 };
 
-export async function loadPcd(renderder: Renderer) {
+export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
   const res = await axios.get(pcdUrl, {responseType: 'arraybuffer'})
   const buf = res.data
   
@@ -96,22 +97,9 @@ export async function loadPcd(renderder: Renderer) {
       colorReader = getReader(fieldObj, stride)
     }
   }
-  const geometry = createGeometry(THREE.DynamicDrawUsage);
-
-  const material = new THREE.PointsMaterial({
-    vertexColors: true,
-    size: 1,
-    sizeAttenuation: false,
-    // transparent,
-    // The sorting issues caused by writing semi-transparent pixels to the depth buffer are less
-    // distracting for point clouds than the self-sorting artifacts when depth writing is disabled
-    depthWrite: true,
-  });
-
-  const points = createPoints(
-    geometry,
-    material,
-  );
+  const pointCloud = new PointCloud();
+  sceneManager.addShape(pointCloud)
+  const geometry = pointCloud.geometry;
 
   const pointCount = header.points
   const pointStep = stride
@@ -124,15 +112,15 @@ export async function loadPcd(renderder: Renderer) {
   const colorConverter = getColorConverter(
     {
       colorMode: 'colormap',
-      colorMap: 'rainbow',
+      colorMap: 'turbo',
       flatColor: '',
       gradient: ['', ''],
       explicitAlpha: 0
     },
     0,
-    80,
+    255,
   );
-  
+
   const view = new DataView(content.buffer, content.byteOffset, content.byteLength);
   for (let i = 0; i < pointCount; i++) {
     const pointOffset = i * pointStep;
@@ -149,8 +137,6 @@ export async function loadPcd(renderder: Renderer) {
   colorAttribute.needsUpdate = true;
   geometry.computeBoundingSphere();
 
-  renderder.add(points)
-
   renderder.render()
   
   // 
@@ -158,26 +144,3 @@ export async function loadPcd(renderder: Renderer) {
   return fieldObjs
 }
 
-function getReaders(fieldObjs: PointField[]){
-
-}
-
-
-export function createGeometry(usage: THREE.Usage): DynamicBufferGeometry {
-  const geometry = new DynamicBufferGeometry(usage);
-  geometry.name = `PointScans:geometry`;
-  geometry.createAttribute("position", Float32Array, 3);
-  geometry.createAttribute("color", Uint8Array, 4, true);
-  return geometry;
-}
-export function createPoints(
-  geometry: DynamicBufferGeometry,
-  material: THREE.Material,
-): THREE.Points {
-  const points = new THREE.Points(geometry, material);
-  // We don't calculate the bounding sphere for points, so frustum culling is disabled
-  points.frustumCulled = false;
-  points.name = `PointCloud:points`;
-
-  return points;
-}

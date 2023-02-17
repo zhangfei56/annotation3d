@@ -51,5 +51,11 @@ class Box3D extends BaseShape{
     // this.renderder.render()
   }
 
+  public getThreeObject(){
+    return this.box
+  }
+
+  
+
 }
 export default Box3D;

@@ -4,6 +4,7 @@ import Renderer from "../Renderer";
 import BaseTool from "./BaseTool";
 import { Vector3  } from "three";
 import EventEmitter from "eventemitter3";
+import SceneManager from "../SceneManager";
 
 export class CreateBoxTool extends BaseTool {
   public activeKeyCode ='KeyA';
@@ -13,12 +14,14 @@ export class CreateBoxTool extends BaseTool {
   private renderer: Renderer
   private startPoint: Point2D | null = null
   private parentBus: EventEmitter;
+  private sceneManager: SceneManager
 
-  constructor(input: InputEmitter, renderer: Renderer, eventBus: EventEmitter) {
+  constructor(input: InputEmitter, renderer: Renderer, eventBus: EventEmitter, sceneManager: SceneManager) {
     super()
     this.input = input
     this.renderer = renderer
     this.parentBus = eventBus
+    this.sceneManager = sceneManager
   }
 
   public active(): void {
@@ -40,7 +43,8 @@ export class CreateBoxTool extends BaseTool {
       }
       worldPosition.z = 0;
       this.box3d = new Box3D(worldPosition, new Vector3(0.1, 0.1, 1))
-      this.renderer.add(this.box3d.box)
+      this.sceneManager.addShape(this.box3d)
+
       this.renderer.render()
 
       this.input.on(EventType.PointerUpEvent, this.onMouseUp)
@@ -72,7 +76,7 @@ export class CreateBoxTool extends BaseTool {
   onMouseUp = (point: Point2D)=>{
       // save
       // this.box3d =null
-      this.input.addListerObject(this.box3d!.box!)
+      this.input.addListerObject(this.box3d!)
       this.input.removeListener(EventType.PointerUpEvent, this.onMouseUp)
       this.input.removeListener(EventType.PointerMoveEvent, this.onMouseMove)
       this.parentBus.emit("deactive")

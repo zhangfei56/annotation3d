@@ -10,7 +10,7 @@ export default class Renderer {
   private camera;
 
 
-  public constructor(canvas: HTMLCanvasElement) {
+  public constructor(canvas: HTMLCanvasElement, scene: THREE.Scene) {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1)
     this.canvas = canvas;
     this.gl = new THREE.WebGLRenderer({
@@ -18,7 +18,7 @@ export default class Renderer {
       alpha: true,
       antialias: true,
     });
-    this.scene = new THREE.Scene();
+    this.scene = scene;
     this.camera =  new THREE.PerspectiveCamera( 50, canvas.width / canvas.height, 0.1, 1000 );
     // this.camera = new THREE.OrthographicCamera()
     this.camera.position.set(0,0, 20)
@@ -47,18 +47,10 @@ export default class Renderer {
 
   }
 
-  public add(obj: THREE.Object3D){
-    this.scene.add(obj)
-  }
-
   public render(){
     // if has performance issue use throttle instead
     
     this.gl.render(this.scene, this.camera);
-  }
-
-  public remove(obj: THREE.Object3D){
-    this.scene.remove(obj)
   }
 
   public getCamera(){

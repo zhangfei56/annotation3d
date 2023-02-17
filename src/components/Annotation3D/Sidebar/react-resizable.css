@@ -4,33 +4,21 @@
 .react-resizable-handle {
   position: absolute; right: -5px; bottom: 0; z-index: 1; width: 10px; height: 100%; cursor: col-resize
 }
-/* demo */
-body {
-  background: white;
-  padding: 20px;
-}
-#content {
-  width: 100%;
-  background: #eee;
-  padding-bottom: 200px;
-}
-.layoutRoot {
-  display: flex;
-  flex-wrap: wrap;
-}
+
+
 .box {
   display: inline-block;
-  background: #ccc;
+  /* background: #ccc; */
   border: 1px solid black;
   text-align: center;
   padding: 10px;
-  box-sizing: border-box;
-  margin-bottom: 10px;
+  /* box-sizing: border-box; */
+  /* margin-bottom: 10px; */
   overflow: hidden;
   position: relative;
-  margin: 20px;
+  /* margin: 20px; */
 }
-.box .text {
+/* .box .text {
   text-align: center;
   position: absolute;
   top: 0;
@@ -45,4 +33,4 @@ body {
 }
 .box3:hover .react-resizable-handle {
   display: block;
-}
+} */

@@ -4,6 +4,7 @@ import { OrbitControlTool } from "./tools/OrbitControlTool"
 import { CreateBoxTool } from "./tools/CreateBoxTool"
 import BaseTool from "./tools/BaseTool"
 import EventEmitter from "eventemitter3"
+import SceneManager from "./SceneManager"
 
 
 export class ToolsManager {
@@ -15,14 +16,14 @@ export class ToolsManager {
   // The four arrow keys
   private keys = { LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown' };
 
-  constructor(input: InputEmitter, renderder: Renderer){
+  constructor(input: InputEmitter, renderder: Renderer, sceneManager: SceneManager){
     this.input = input
     this.eventBus = new EventEmitter()
     this.defaultTool = new OrbitControlTool(input, renderder, renderder.getCamera(), renderder.getDomElement());
     this.defaultTool.active()
 
     this.tools.push(this.defaultTool);
-    const createTool = new CreateBoxTool(input, renderder, this.eventBus)
+    const createTool = new CreateBoxTool(input, renderder, this.eventBus, sceneManager)
     this.tools.push(createTool);
 
     this.input.addListener(EventType.KeyDownEvent, this.onKeyDown)
