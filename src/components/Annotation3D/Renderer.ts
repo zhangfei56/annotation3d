@@ -3,15 +3,13 @@ import { Vector3 } from 'three';
 
 import { OrbitControls } from './ThreeDee/OrbitControls';
 export default class Renderer {
-
   private readonly canvas: HTMLCanvasElement;
   public readonly gl: THREE.WebGLRenderer;
   public readonly scene: THREE.Scene;
   private camera;
 
-
   public constructor(canvas: HTMLCanvasElement, scene: THREE.Scene) {
-    THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1)
+    THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
     this.canvas = canvas;
     this.gl = new THREE.WebGLRenderer({
       canvas,
@@ -19,12 +17,17 @@ export default class Renderer {
       antialias: true,
     });
     this.scene = scene;
-    this.camera =  new THREE.PerspectiveCamera( 50, canvas.width / canvas.height, 0.1, 1000 );
+    this.camera = new THREE.PerspectiveCamera(
+      50,
+      canvas.width / canvas.height,
+      0.1,
+      1000,
+    );
     // this.camera = new THREE.OrthographicCamera()
-    this.camera.position.set(0,0, 20)
+    this.camera.position.set(0, 0, 20);
 
     // this.camera.lookAt(new THREE.Vector3(0,1,1))
-    this.camera.updateMatrixWorld()
+    this.camera.updateMatrixWorld();
     // const box =  new THREE.BoxGeometry(1,1,1)
     // const mater = new THREE.MeshBasicMaterial( {color: 'red'})
     // const s = new THREE.Mesh(box, mater)
@@ -42,22 +45,20 @@ export default class Renderer {
     // camera2.updateProjectionMatrix()
     // gl2.render(this.scene, camera2)
 
-
     // document.body.appendChild( gl2.domElement );
-
   }
 
-  public render(){
+  public render() {
     // if has performance issue use throttle instead
-    
+
     this.gl.render(this.scene, this.camera);
   }
 
-  public getCamera(){
+  public getCamera() {
     return this.camera;
   }
 
-  public getDomElement(){
-    return this.canvas
+  public getDomElement() {
+    return this.canvas;
   }
 }

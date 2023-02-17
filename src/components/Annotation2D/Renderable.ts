@@ -2,10 +2,9 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import * as THREE from "three";
+import * as THREE from 'three';
 
-
-export const SELECTED_ID_VARIABLE = "selected_id";
+export const SELECTED_ID_VARIABLE = 'selected_id';
 
 export type BaseUserData = {
   /** Timestamp when the associated `MessageEvent` was received */
@@ -27,7 +26,9 @@ export type BaseUserData = {
  * properties from `BaseUserData` that allow coordinate frame transforms to
  * automatically be applied and settings tree errors to be displayed.
  */
-export class Renderable<TUserData extends BaseUserData = BaseUserData> extends THREE.Object3D {
+export class Renderable<
+  TUserData extends BaseUserData = BaseUserData,
+> extends THREE.Object3D {
   /** Identifies this class as inheriting from `Renderable` */
   public readonly isRenderable = true;
   /** Allow this Renderable to be selected during picking and shown in the Object Details view */
@@ -54,6 +55,4 @@ export class Renderable<TUserData extends BaseUserData = BaseUserData> extends T
   public dispose(): void {
     this.children.length = 0;
   }
-
-
 }

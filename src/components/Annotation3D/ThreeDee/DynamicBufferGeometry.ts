@@ -2,7 +2,7 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import * as THREE from "three";
+import * as THREE from 'three';
 
 interface TypedArray {
   readonly length: number;
@@ -63,7 +63,11 @@ export class DynamicBufferGeometry extends THREE.BufferGeometry {
         );
       }
       const data = new dataConstructor(itemCount * attribute.itemSize);
-      const newAttrib = new THREE.BufferAttribute(data, attribute.itemSize, attribute.normalized);
+      const newAttrib = new THREE.BufferAttribute(
+        data,
+        attribute.itemSize,
+        attribute.normalized,
+      );
       newAttrib.setUsage(this._usage);
       this.setAttribute(attributeName, newAttrib);
     }

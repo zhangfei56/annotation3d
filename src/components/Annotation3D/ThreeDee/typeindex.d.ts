@@ -2,7 +2,7 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-declare module "@pegasus/studio" {
+declare module '@pegasus/studio' {
   // Valid types for parameter data (such as rosparams)
   export type ParameterValue =
     | undefined
@@ -133,7 +133,7 @@ declare module "@pegasus/studio" {
        * Where to position the panel. Currently, only "sibling" is supported which indicates the
        * new panel will be adjacent to the calling panel.
        */
-      position: "sibling";
+      position: 'sibling';
 
       /**
        * The type of panel to open. For internal panels, this corresponds to the `static panelType`.
@@ -217,7 +217,7 @@ declare module "@pegasus/studio" {
     previewTime?: number | undefined;
 
     /** The color scheme currently in use throughout the app. */
-    colorScheme?: "dark" | "light";
+    colorScheme?: 'dark' | 'light';
 
     /** Application settings. This will only contain subscribed application setting key/values */
     appSettings?: ReadonlyMap<string, AppSettingValue>;
@@ -325,7 +325,11 @@ declare module "@pegasus/studio" {
      * @param schemaName The name of the schema that the published messages will conform to.
      * @param options Options passed to the current data source for additional configuration.
      */
-    advertise?(topic: string, schemaName: string, options?: Record<string, unknown>): void;
+    advertise?(
+      topic: string,
+      schemaName: string,
+      options?: Record<string, unknown>,
+    ): void;
 
     /**
      * Indicate that you no longer want to advertise on this topic.
@@ -393,7 +397,7 @@ declare module "@pegasus/studio" {
 
   export interface ExtensionContext {
     /** The current _mode_ of the application. */
-    readonly mode: "production" | "development" | "test";
+    readonly mode: 'production' | 'development' | 'test';
 
     registerPanel(params: ExtensionPanelRegistration): void;
 
@@ -411,54 +415,54 @@ declare module "@pegasus/studio" {
   }
 
   export type SettingsIcon =
-    | "Add"
-    | "Addchart"
-    | "Background"
-    | "Camera"
-    | "Cells"
-    | "Check"
-    | "Circle"
-    | "Clear"
-    | "Clock"
-    | "Collapse"
-    | "Cube"
-    | "Delete"
-    | "Expand"
-    | "Flag"
-    | "Folder"
-    | "FolderOpen"
-    | "Grid"
-    | "Hive"
-    | "ImageProjection"
-    | "Map"
-    | "Move"
-    | "MoveDown"
-    | "MoveUp"
-    | "NorthWest"
-    | "Note"
-    | "NoteFilled"
-    | "Points"
-    | "PrecisionManufacturing"
-    | "Radar"
-    | "Settings"
-    | "Shapes"
-    | "Share"
-    | "Star"
-    | "SouthEast"
-    | "Timeline"
-    | "Topic"
-    | "Walk"
-    | "World";
+    | 'Add'
+    | 'Addchart'
+    | 'Background'
+    | 'Camera'
+    | 'Cells'
+    | 'Check'
+    | 'Circle'
+    | 'Clear'
+    | 'Clock'
+    | 'Collapse'
+    | 'Cube'
+    | 'Delete'
+    | 'Expand'
+    | 'Flag'
+    | 'Folder'
+    | 'FolderOpen'
+    | 'Grid'
+    | 'Hive'
+    | 'ImageProjection'
+    | 'Map'
+    | 'Move'
+    | 'MoveDown'
+    | 'MoveUp'
+    | 'NorthWest'
+    | 'Note'
+    | 'NoteFilled'
+    | 'Points'
+    | 'PrecisionManufacturing'
+    | 'Radar'
+    | 'Settings'
+    | 'Shapes'
+    | 'Share'
+    | 'Star'
+    | 'SouthEast'
+    | 'Timeline'
+    | 'Topic'
+    | 'Walk'
+    | 'World';
 
   /**
    * A settings tree field specifies the input type and the value of a field
    * in the settings editor.
    */
   export type SettingsTreeFieldValue =
-    | { input: "autocomplete"; value?: string; items: string[] }
-    | { input: "boolean"; value?: boolean }
+    | { input: 'autocomplete'; value?: string; items: string[] }
+    | { input: 'boolean'; value?: boolean }
     | {
-        input: "rgb";
+        input: 'rgb';
         value?: string;
 
         /**
@@ -472,7 +476,7 @@ declare module "@pegasus/studio" {
         hideClearButton?: boolean;
       }
     | {
-        input: "rgba";
+        input: 'rgba';
         value?: string;
 
         /**
@@ -485,10 +489,10 @@ declare module "@pegasus/studio" {
          */
         hideClearButton?: boolean;
       }
-    | { input: "gradient"; value?: [string, string] }
-    | { input: "messagepath"; value?: string; validTypes?: string[] }
+    | { input: 'gradient'; value?: [string, string] }
+    | { input: 'messagepath'; value?: string; validTypes?: string[] }
     | {
-        input: "number";
+        input: 'number';
         value?: number;
         step?: number;
         max?: number;
@@ -501,17 +505,17 @@ declare module "@pegasus/studio" {
         placeholder?: string;
       }
     | {
-        input: "select";
+        input: 'select';
         value?: number | number[];
         options: Array<{ label: string; value: undefined | number }>;
       }
     | {
-        input: "select";
+        input: 'select';
         value?: string | string[];
         options: Array<{ label: string; value: undefined | string }>;
       }
     | {
-        input: "string";
+        input: 'string';
         value?: string;
 
         /**
@@ -520,12 +524,12 @@ declare module "@pegasus/studio" {
         placeholder?: string;
       }
     | {
-        input: "toggle";
+        input: 'toggle';
         value?: string;
         options: string[] | Array<{ label: string; value: undefined | string }>;
       }
     | {
-        input: "vec3";
+        input: 'vec3';
         value?: [undefined | number, undefined | number, undefined | number];
         placeholder?: [undefined | string, undefined | string, undefined | string];
         step?: number;
@@ -535,7 +539,7 @@ declare module "@pegasus/studio" {
         min?: number;
       }
     | {
-        input: "vec2";
+        input: 'vec2';
         value?: [undefined | number, undefined | number];
         placeholder?: [undefined | string, undefined | string];
         step?: number;
@@ -577,7 +581,7 @@ declare module "@pegasus/studio" {
   export type SettingsTreeChildren = Record<string, undefined | SettingsTreeNode>;
 
   export type SettingsTreeNodeActionItem = {
-    type: "action";
+    type: 'action';
 
     /**
      * A unique idenfier for the action.
@@ -599,15 +603,17 @@ declare module "@pegasus/studio" {
      * context menu. Defaults to "menu" if not specified. Inline items will be rendered
      * as an icon only if their icon is specified.
      */
-    display?: "menu" | "inline";
+    display?: 'menu' | 'inline';
   };
 
-  export type SettingsTreeNodeActionDivider = { type: "divider" };
+  export type SettingsTreeNodeActionDivider = { type: 'divider' };
 
   /**
    * An action included in the action menu for a settings node.
    */
-  export type SettingsTreeNodeAction = SettingsTreeNodeActionItem | SettingsTreeNodeActionDivider;
+  export type SettingsTreeNodeAction =
+    | SettingsTreeNodeActionItem
+    | SettingsTreeNodeActionDivider;
 
   export type SettingsTreeNode = {
     /**
@@ -623,7 +629,7 @@ declare module "@pegasus/studio" {
     /**
      * Set to collapsed if the node should be initially collapsed.
      */
-    defaultExpansionState?: "collapsed" | "expanded";
+    defaultExpansionState?: 'collapsed' | 'expanded';
 
     /**
      * Optional message indicating any error state for the node.
@@ -686,14 +692,14 @@ declare module "@pegasus/studio" {
    */
   export type SettingsTreeAction =
     | {
-        action: "update";
+        action: 'update';
         payload: { path: readonly string[] } & DistributivePick<
           SettingsTreeFieldValue,
-          "input" | "value"
+          'input' | 'value'
         >;
       }
     | {
-        action: "perform-node-action";
+        action: 'perform-node-action';
         payload: { id: string; path: readonly string[] };
       };
 

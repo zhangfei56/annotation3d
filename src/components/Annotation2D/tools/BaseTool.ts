@@ -1,7 +1,5 @@
-import EventEmitter from 'eventemitter3'
+import EventEmitter from 'eventemitter3';
 
-class BaseTool extends EventEmitter {
-  
-}
+class BaseTool extends EventEmitter {}
 
-export default BaseTool
+export default BaseTool;

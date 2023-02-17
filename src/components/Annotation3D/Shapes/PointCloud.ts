@@ -1,13 +1,13 @@
-import { Object3D, Event, Points,DynamicDrawUsage, PointsMaterial } from "three";
-import { BaseShape } from "./BaseShape";
-import { DynamicBufferGeometry } from '../ThreeDee/DynamicBufferGeometry'
+import { DynamicDrawUsage, Event, Object3D, Points, PointsMaterial } from 'three';
 
+import { DynamicBufferGeometry } from '../ThreeDee/DynamicBufferGeometry';
+import { BaseShape } from './BaseShape';
 
 export function createGeometry(usage: THREE.Usage): DynamicBufferGeometry {
   const geometry = new DynamicBufferGeometry(usage);
   geometry.name = `PointScans:geometry`;
-  geometry.createAttribute("position", Float32Array, 3);
-  geometry.createAttribute("color", Uint8Array, 4, true);
+  geometry.createAttribute('position', Float32Array, 3);
+  geometry.createAttribute('color', Uint8Array, 4, true);
   return geometry;
 }
 export function createPoints(
@@ -22,13 +22,11 @@ export function createPoints(
   return points;
 }
 
-
-export class PointCloud extends BaseShape{
-
-  points: Points
-  geometry: DynamicBufferGeometry
+export class PointCloud extends BaseShape {
+  points: Points;
+  geometry: DynamicBufferGeometry;
   public constructor() {
-    super()
+    super();
     this.geometry = createGeometry(DynamicDrawUsage);
 
     const material = new PointsMaterial({
@@ -41,17 +39,12 @@ export class PointCloud extends BaseShape{
       depthWrite: true,
     });
 
-    this.points = createPoints(
-      this.geometry,
-      material,
-    );
+    this.points = createPoints(this.geometry, material);
   }
 
-  public updatePoint(){
-    
-  }
+  public updatePoint() {}
 
   public getThreeObject(): Points {
-    return this.points
+    return this.points;
   }
 }

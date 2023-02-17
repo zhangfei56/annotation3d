@@ -1,20 +1,20 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { Vector2 } from 'three';
 type Props = {
   width: number;
   height: number;
-}
-import Annotation2D from '../Annotation2D'
+};
+import Annotation2D from '../Annotation2D';
 
 function ImageAnnotation(props: Props): JSX.Element {
-  const { width, height } = props
+  const { width, height } = props;
 
-
-
-  return <>
-    <p>header</p>
-    <Annotation2D height={height} width={width} />
-  </>
+  return (
+    <>
+      <p>header</p>
+      <Annotation2D height={height} width={width} />
+    </>
+  );
 }
-export default ImageAnnotation
+export default ImageAnnotation;

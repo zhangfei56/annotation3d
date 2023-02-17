@@ -1,18 +1,15 @@
-
-import type { Point2D, } from '../Input';
+import type { Point2D } from '../Input';
 
 export abstract class BaseShape {
-
-  protected clicked: boolean = false;
+  protected clicked = false;
   public mouseMoveHandler(point: Point2D): void {}
 
-  public mouseDownHandler(point: Point2D): void{}
+  public mouseDownHandler(point: Point2D): void {}
 
-  public mouseUpHandler(point: Point2D): void{}
+  public mouseUpHandler(point: Point2D): void {}
 
-  public mouseEnterHandler(): void{}
-  public mouseLeaveHandler(): void{}
+  public mouseEnterHandler(): void {}
+  public mouseLeaveHandler(): void {}
 
   public abstract getThreeObject(): THREE.Object3D;
 }
-

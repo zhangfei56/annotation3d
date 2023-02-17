@@ -1,5 +1,4 @@
-
-export type AnnotationType = 'box3d' | 'box2d'
+export type AnnotationType = 'box3d' | 'box2d';
 
 export interface Point3D {
   x: number;
@@ -8,9 +7,9 @@ export interface Point3D {
 }
 export interface Point2D {
   x: number;
-  y: number
+  y: number;
 }
-export interface Quaternion{
+export interface Quaternion {
   x: number;
   y: number;
   z: number;
@@ -20,9 +19,9 @@ export interface AnnotationResult {
   type: AnnotationType;
   position: Point3D;
   length: number;
-  width : number;
-  height : number;
-  orientation: Quaternion
+  width: number;
+  height: number;
+  orientation: Quaternion;
 }
 
 export interface Frame {
@@ -32,7 +31,7 @@ export interface Frame {
   frontImage: string;
   leftImage: string;
 
-  annotations: AnnotationResult[]
+  annotations: AnnotationResult[];
 }
 
 export interface Clip {

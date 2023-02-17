@@ -2,9 +2,8 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import * as THREE from "three";
-import tinycolor from "tinycolor2";
-
+import * as THREE from 'three';
+import tinycolor from 'tinycolor2';
 
 export type ColorRGB = {
   r: number;
@@ -25,7 +24,6 @@ export const DARK_OUTLINE = new THREE.Color(0xffffff).convertSRGBToLinear();
 export function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
-
 
 // From https://github.com/mrdoob/three.js/blob/dev/src/math/ColorManagement.js
 // which is not exported
@@ -51,7 +49,10 @@ export function makeRgba(): ColorRGBA {
   return { r: 0, g: 0, b: 0, a: 0 };
 }
 
-export function stringToRgb<T extends ColorRGB | THREE.Color>(output: T, colorStr: string): T {
+export function stringToRgb<T extends ColorRGB | THREE.Color>(
+  output: T,
+  colorStr: string,
+): T {
   const color = tinycolor(colorStr);
   if (!color.isValid()) {
     output.r = output.g = output.b = 1;
@@ -76,7 +77,7 @@ export function rgbaToHexString(color: ColorRGBA): string {
     (THREE.MathUtils.clamp(color.g * 255, 0, 255) << 16) ^
     (THREE.MathUtils.clamp(color.b * 255, 0, 255) << 8) ^
     (THREE.MathUtils.clamp(color.a * 255, 0, 255) << 0);
-  return ("00000000" + rgba.toString(16)).slice(-8);
+  return ('00000000' + rgba.toString(16)).slice(-8);
 }
 
 export function rgbaToCssString(color: ColorRGBA): string {
@@ -104,7 +105,12 @@ export function getLuminance(r: number, g: number, b: number): number {
  * match CSS linear gradients. The inputs are assumed to not have pre-multiplied
  * alpha, and the output will have pre-multiplied alpha.
  */
-export function rgbaGradient(output: ColorRGBA, a: ColorRGBA, b: ColorRGBA, t: number): ColorRGBA {
+export function rgbaGradient(
+  output: ColorRGBA,
+  a: ColorRGBA,
+  b: ColorRGBA,
+  t: number,
+): ColorRGBA {
   const aR = a.r * a.a;
   const aG = a.g * a.a;
   const aB = a.b * a.a;

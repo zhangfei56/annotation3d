@@ -18,7 +18,7 @@ export type PCDHeaderField = {
 
 const zeroHeaderField: PCDHeaderField = {
   size: 0,
-  type: "",
+  type: '',
   count: 0,
   offset: 0,
 };
@@ -68,16 +68,16 @@ export function parsePCD(data: ArrayBufferLike): PCDInfo {
 
   // parse data
   switch (header.dataType) {
-    case "ascii":
+    case 'ascii':
       converted = parsePCDASCII(header, textData);
       break;
 
-    case "binary":
+    case 'binary':
       converted = parsePCDBinary(header, data);
       break;
 
     // TODO(ruiyuli): need to check https://github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/PCDLoader.js
-    case "binary_compressed":
+    case 'binary_compressed':
       converted = parsePCDBinaryCompressed(header, data);
       break;
 
@@ -94,17 +94,17 @@ export function parsePCD(data: ArrayBufferLike): PCDInfo {
 export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
   let textData: string;
 
-  if (typeof data !== "string") {
+  if (typeof data !== 'string') {
     textData = new TextDecoder().decode(data);
   } else {
     textData = data;
   }
 
   const pcdHeader: PCDHeader = {
-    dataType: "",
+    dataType: '',
     headerLen: 0,
-    str: "",
-    version: "",
+    str: '',
+    version: '',
     fieldNames: [],
     fields: {
       x: zeroHeaderField,
@@ -113,7 +113,7 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
     },
     width: 0,
     height: 0,
-    viewpoint: "",
+    viewpoint: '',
     points: 0,
     rowSize: 0,
   };
@@ -122,7 +122,7 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
   const result2 = /[\r\n]DATA\s(\S*)\s/i.exec(textData.slice(result1 - 1));
 
   if (result2 == undefined) {
-    throw new Error("Bad PCD Header, Unknown Data Type");
+    throw new Error('Bad PCD Header, Unknown Data Type');
   }
 
   pcdHeader.dataType = result2[1];
@@ -131,7 +131,7 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
 
   // remove comments
 
-  pcdHeader.str = pcdHeader.str.replace(/#.*/gi, "");
+  pcdHeader.str = pcdHeader.str.replace(/#.*/gi, '');
 
   // parse
   const version = /VERSION (.*)/i.exec(pcdHeader.str);
@@ -140,14 +140,14 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
   }
   const fields = /FIELDS (.*)/i.exec(pcdHeader.str);
   if (fields == undefined) {
-    throw new Error("Bad PCD Header, No FIELDS");
+    throw new Error('Bad PCD Header, No FIELDS');
   }
-  pcdHeader.fieldNames = fields[1].trimRight().split(" ");
+  pcdHeader.fieldNames = fields[1].trimRight().split(' ');
 
   for (const name of pcdHeader.fieldNames) {
     pcdHeader.fields[name] = {
       size: 0,
-      type: "",
+      type: '',
       count: 0,
       offset: 0,
     };
@@ -155,12 +155,12 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
 
   const size = /SIZE (.*)/i.exec(pcdHeader.str);
   if (size == undefined) {
-    throw new Error("Bad PCD Header, No SIZE");
+    throw new Error('Bad PCD Header, No SIZE');
   }
 
   size[1]
     .trimRight()
-    .split(" ")
+    .split(' ')
     .map((x, i) => {
       const field = pcdHeader.fields[pcdHeader.fieldNames[i]];
       if (field != undefined) {
@@ -170,11 +170,11 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
 
   const type = /TYPE (.*)/i.exec(pcdHeader.str);
   if (type == undefined) {
-    throw new Error("Bad PCD Header, No TYPE");
+    throw new Error('Bad PCD Header, No TYPE');
   }
   type[1]
     .trimRight()
-    .split(" ")
+    .split(' ')
     .map((x, i) => {
       const field = pcdHeader.fields[pcdHeader.fieldNames[i]];
       if (field != undefined) {
@@ -186,7 +186,7 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
   if (count != undefined) {
     count[1]
       .trimRight()
-      .split(" ")
+      .split(' ')
       .map((x, i) => {
         const field = pcdHeader.fields[pcdHeader.fieldNames[i]];
         if (field != undefined) {
@@ -220,20 +220,20 @@ export function parsePCDHeader(data: string | ArrayBufferLike): PCDHeader {
 
   if (
     pcdHeader.points === 0 &&
-    typeof pcdHeader.width === "number" &&
-    typeof pcdHeader.height === "number"
+    typeof pcdHeader.width === 'number' &&
+    typeof pcdHeader.height === 'number'
   ) {
     pcdHeader.points = pcdHeader.width * pcdHeader.height;
   }
 
-  let sizeSum: number = 0;
+  let sizeSum = 0;
 
   for (let i = 0; i < pcdHeader.fieldNames.length; i++) {
     const fieldObj = pcdHeader.fields[pcdHeader.fieldNames[i]];
     if (fieldObj == undefined) {
       continue;
     }
-    if (pcdHeader.dataType === "ascii") {
+    if (pcdHeader.dataType === 'ascii') {
       fieldObj.offset = i;
     } else {
       fieldObj.offset = sizeSum;
@@ -257,12 +257,12 @@ function parsePCDASCII(origHeader: PCDHeader, textData: string): PCDInfo {
   const fields = origHeader.fields;
 
   const pcdData = textData.slice(origHeader.headerLen);
-  const lines = pcdData.split("\n");
+  const lines = pcdData.split('\n');
 
   let offset = 0;
   for (const line of lines) {
-    if (line !== "") {
-      const numbers = line.trim().split(" ");
+    if (line !== '') {
+      const numbers = line.trim().split(' ');
       const x = parseFloat(numbers[fields.x.offset]);
       const y = parseFloat(numbers[fields.y.offset]);
       const z = parseFloat(numbers[fields.z.offset]);
@@ -289,18 +289,23 @@ function parsePCDASCII(origHeader: PCDHeader, textData: string): PCDInfo {
   }
 
   const newFields: PCDHeaderFields = {
-    x: { count: 1, size: float32bytes, type: "F", offset: 0 * float32bytes },
-    y: { count: 1, size: float32bytes, type: "F", offset: 1 * float32bytes },
-    z: { count: 1, size: float32bytes, type: "F", offset: 2 * float32bytes },
+    x: { count: 1, size: float32bytes, type: 'F', offset: 0 * float32bytes },
+    y: { count: 1, size: float32bytes, type: 'F', offset: 1 * float32bytes },
+    z: { count: 1, size: float32bytes, type: 'F', offset: 2 * float32bytes },
   };
 
   const fieldNames = [...origHeader.fieldNames];
   if (origHeader.fields.rgb) {
-    fieldNames.push("rgb");
-    newFields.rgb = { count: 1, size: uint32bytes, type: "U", offset: 3 * float32bytes };
+    fieldNames.push('rgb');
+    newFields.rgb = { count: 1, size: uint32bytes, type: 'U', offset: 3 * float32bytes };
   } else {
-    fieldNames.push("intensity");
-    newFields.intensity = { count: 1, size: uint32bytes, type: "U", offset: 3 * float32bytes };
+    fieldNames.push('intensity');
+    newFields.intensity = {
+      count: 1,
+      size: uint32bytes,
+      type: 'U',
+      offset: 3 * float32bytes,
+    };
   }
 
   const newHeader: PCDHeader = {
@@ -328,7 +333,9 @@ function parsePCDBinary(pcdHeader: PCDHeader, data: ArrayBufferLike): PCDInfo {
  * from https://github.com/mrdoob/three.js/blob/master/examples/jsm/loaders/PCDLoader.js
  */
 function parsePCDBinaryCompressed(origHeader: PCDHeader, data: ArrayBufferLike): PCDInfo {
-  const sizes = new Uint32Array(data.slice(origHeader.headerLen, origHeader.headerLen + 8));
+  const sizes = new Uint32Array(
+    data.slice(origHeader.headerLen, origHeader.headerLen + 8),
+  );
   const compressedSize = sizes[0];
   const decompressedSize = sizes[1];
   const decompressed = decompressLZF(
@@ -347,13 +354,22 @@ function parsePCDBinaryCompressed(origHeader: PCDHeader, data: ArrayBufferLike):
   for (let i = 0; i < points; i++) {
     const offset = i * pointStep;
 
-    const x = srcView.getFloat32(points * fields.x.offset + fields.x.size * i, isLittleEndian);
+    const x = srcView.getFloat32(
+      points * fields.x.offset + fields.x.size * i,
+      isLittleEndian,
+    );
     destView.setFloat32(offset, x, isLittleEndian);
 
-    const y = srcView.getFloat32(points * fields.y.offset + fields.y.size * i, isLittleEndian);
+    const y = srcView.getFloat32(
+      points * fields.y.offset + fields.y.size * i,
+      isLittleEndian,
+    );
     destView.setFloat32(offset + 1 * float32bytes, y, isLittleEndian);
 
-    const z = srcView.getFloat32(points * fields.z.offset + fields.z.size * i, isLittleEndian);
+    const z = srcView.getFloat32(
+      points * fields.z.offset + fields.z.size * i,
+      isLittleEndian,
+    );
     destView.setFloat32(offset + 2 * float32bytes, z, isLittleEndian);
 
     if (fields.rgb != undefined) {
@@ -368,18 +384,23 @@ function parsePCDBinaryCompressed(origHeader: PCDHeader, data: ArrayBufferLike):
   }
 
   const newFields: PCDHeaderFields = {
-    x: { count: 1, size: float32bytes, type: "F", offset: 0 * float32bytes },
-    y: { count: 1, size: float32bytes, type: "F", offset: 1 * float32bytes },
-    z: { count: 1, size: float32bytes, type: "F", offset: 2 * float32bytes },
+    x: { count: 1, size: float32bytes, type: 'F', offset: 0 * float32bytes },
+    y: { count: 1, size: float32bytes, type: 'F', offset: 1 * float32bytes },
+    z: { count: 1, size: float32bytes, type: 'F', offset: 2 * float32bytes },
   };
 
   const fieldNames = [...origHeader.fieldNames];
   if (origHeader.fields.rgb) {
-    fieldNames.push("rgb");
-    newFields.rgb = { count: 1, size: uint32bytes, type: "U", offset: 3 * float32bytes };
+    fieldNames.push('rgb');
+    newFields.rgb = { count: 1, size: uint32bytes, type: 'U', offset: 3 * float32bytes };
   } else {
-    fieldNames.push("intensity");
-    newFields.intensity = { count: 1, size: uint32bytes, type: "U", offset: 3 * float32bytes };
+    fieldNames.push('intensity');
+    newFields.intensity = {
+      count: 1,
+      size: uint32bytes,
+      type: 'U',
+      offset: 3 * float32bytes,
+    };
   }
 
   const newHeader: PCDHeader = {
@@ -416,10 +437,10 @@ function decompressLZF(inData: Uint8Array, outLength: number): Uint8Array {
     if (ctrl < 1 << 5) {
       ctrl++;
       if (outPtr + ctrl > outLength) {
-        throw new Error("Output buffer is not large enough");
+        throw new Error('Output buffer is not large enough');
       }
       if (inPtr + ctrl > inLength) {
-        throw new Error("Invalid compressed data");
+        throw new Error('Invalid compressed data');
       }
 
       do {
@@ -429,26 +450,26 @@ function decompressLZF(inData: Uint8Array, outLength: number): Uint8Array {
       len = ctrl >> 5;
       ref = outPtr - ((ctrl & 0x1f) << 8) - 1;
       if (inPtr >= inLength) {
-        throw new Error("Invalid compressed data");
+        throw new Error('Invalid compressed data');
       }
 
       if (len === 7) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         len += inData[inPtr++];
         if (inPtr >= inLength) {
-          throw new Error("Invalid compressed data");
+          throw new Error('Invalid compressed data');
         }
       }
 
       ref -= inData[inPtr++];
       if (outPtr + len + 2 > outLength) {
-        throw new Error("Output buffer is not large enough");
+        throw new Error('Output buffer is not large enough');
       }
       if (ref < 0) {
-        throw new Error("Invalid compressed data");
+        throw new Error('Invalid compressed data');
       }
       if (ref >= outPtr) {
-        throw new Error("Invalid compressed data");
+        throw new Error('Invalid compressed data');
       }
 
       do {

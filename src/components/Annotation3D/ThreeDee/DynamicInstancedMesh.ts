@@ -2,7 +2,7 @@
 // License, v2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
-import * as THREE from "three";
+import * as THREE from 'three';
 
 export type ColorRGBA = {
   r: number;
@@ -31,7 +31,11 @@ export class DynamicInstancedMesh<
   // Total size of the buffer attributes, which can be larger than .count (instances in use)
   private _capacity: number;
 
-  public constructor(geometry: TGeometry, material: TMaterial, initialCapacity = INITIAL_CAPACITY) {
+  public constructor(
+    geometry: TGeometry,
+    material: TMaterial,
+    initialCapacity = INITIAL_CAPACITY,
+  ) {
     super(geometry, material, 0);
 
     this._capacity = initialCapacity;

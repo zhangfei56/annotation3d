@@ -1,31 +1,25 @@
+import * as THREE from 'three';
 
-import * as THREE from "three";
-import { BaseShape } from "./Shapes/BaseShape";
+import { BaseShape } from './Shapes/BaseShape';
 
-export default class SceneManager{
+export default class SceneManager {
   public scene: THREE.Scene;
 
-  private shapes: BaseShape[]
+  private shapes: BaseShape[];
 
-  private helperObject
+  private helperObject;
 
-  public constructor(){
-    this.scene = new THREE.Scene()
-    this.shapes = []
+  public constructor() {
+    this.scene = new THREE.Scene();
+    this.shapes = [];
   }
 
+  public addHelperObject() {}
 
-  public addHelperObject(){
-    
+  public addShape(shape: BaseShape) {
+    this.shapes.push(shape);
+    this.scene.add(shape.getThreeObject());
   }
 
-  public addShape(shape: BaseShape){
-    this.shapes.push(shape)
-    this.scene.add(shape.getThreeObject())
-  }
-
-  public generateShapeFromFrame(){
-
-  }
-
+  public generateShapeFromFrame() {}
 }

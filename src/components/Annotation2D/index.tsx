@@ -1,61 +1,56 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { Vector2 } from 'three';
-import imageUrl from '../../assets/11.png'
-import { InputEmitter } from './Input'
-import { RectTool } from './tools/RectTool'
+
+import imageUrl from '../../assets/11.png';
+import { InputEmitter } from './Input';
+import { RectTool } from './tools/RectTool';
 
 type Props = {
   width: number;
   height: number;
-}
+};
 import Renderer from './Renderer';
 import Rect2D from './Shapes/Rect2D';
 import { useImage } from './useImage';
 function ThreeDeeRender(props: Props): JSX.Element {
-  const { width, height } = props
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
-  const imageInfo = useImage(imageUrl)
+  const { width, height } = props;
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const imageInfo = useImage(imageUrl);
 
   const renderer = useMemo(() => {
     if (canvas) {
       return new Renderer(canvas);
     }
-    return null
+    return null;
+  }, [canvas]);
 
-  }, [canvas])
-
-
-  let clickedMouse = false;
+  const clickedMouse = false;
 
   useEffect(() => {
     if (renderer && imageInfo?.imagePlane) {
-      renderer.add(imageInfo.imagePlane)
+      renderer.add(imageInfo.imagePlane);
 
       const input = new InputEmitter(canvas!, imageInfo, renderer);
 
-      const rectTool = new RectTool(input, renderer)
-      rectTool.init()
+      const rectTool = new RectTool(input, renderer);
+      rectTool.init();
 
-      const camera = renderer.getCamera()
-      const editHalfWidth = imageInfo?.area?.width / 2
-      camera.left = 0
-      camera.right = imageInfo?.area?.width
-      camera.top = 0
-      camera.bottom = -imageInfo?.area?.width
+      const camera = renderer.getCamera();
+      const editHalfWidth = imageInfo?.area?.width / 2;
+      camera.left = 0;
+      camera.right = imageInfo?.area?.width;
+      camera.top = 0;
+      camera.bottom = -imageInfo?.area?.width;
 
-      camera.updateProjectionMatrix()
-      renderer.render()
+      camera.updateProjectionMatrix();
+      renderer.render();
     }
-
-  }, [renderer, imageInfo])
-
-
+  }, [renderer, imageInfo]);
 
   // const objects: THREE.Object3D<THREE.Event>[] | (THREE.LineLoop<THREE.BufferGeometry, THREE.MeshBasicMaterial> | THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>)[] = []
   // line
   // const raycaster = new THREE.Raycaster()
-
 
   // function onMouseMove(event: MouseEvent) {
   //   //event.preventDefault();
@@ -89,7 +84,6 @@ function ThreeDeeRender(props: Props): JSX.Element {
   //   }
   // }
 
-
   let rect2d: Rect2D | undefined;
 
   function addRect() {
@@ -98,9 +92,15 @@ function ThreeDeeRender(props: Props): JSX.Element {
     }
   }
 
-  return <>
-    <canvas ref={setCanvas} width={window.innerWidth} height={window.innerHeight}></canvas>
-    <button onClick={addRect}>click</button>
-  </>
+  return (
+    <>
+      <canvas
+        ref={setCanvas}
+        width={window.innerWidth}
+        height={window.innerHeight}
+      ></canvas>
+      <button onClick={addRect}>click</button>
+    </>
+  );
 }
-export default ThreeDeeRender
+export default ThreeDeeRender;

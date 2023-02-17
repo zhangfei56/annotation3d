@@ -1,58 +1,58 @@
+import { PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
+import { useAsync } from 'react-use';
 
-import { PropsWithChildren, useCallback, useEffect, useState, useMemo } from "react";
+import useShallowMemo from '../../../utils/useShallowMemo';
+import ClipContext, { CurrentClip } from '../context/ClipContext';
+import { Clip } from '../types/Messages';
 
-import useShallowMemo from "../../../utils/useShallowMemo";
-import ClipContext, { CurrentClip } from "../context/ClipContext";
-import { useAsync } from "react-use";
-import { Clip } from "../types/Messages";
-
-
-export function ClipContextProvider(
-  props: PropsWithChildren<unknown>,
-): JSX.Element {
+export function ClipContextProvider(props: PropsWithChildren<unknown>): JSX.Element {
   const [currentClip, setCurrentClip] = useState<Clip | undefined>();
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0)
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
 
   const currentFrame = useMemo(() => {
     if (!currentClip) {
-      return undefined
+      return undefined;
     }
     if (currentClip.frames[currentFrameIndex] !== undefined) {
-      return currentClip.frames[currentFrameIndex]
+      return currentClip.frames[currentFrameIndex];
     }
-    return undefined
-
-  }, [currentClip, currentFrameIndex])
+    return undefined;
+  }, [currentClip, currentFrameIndex]);
 
   useAsync(async () => {
     // get clip from remote
     const mockData: Clip = {
-      id: "1",
+      id: '1',
       frameSize: 1,
       frames: [
         {
-          id: "1",
+          id: '1',
           index: 1,
-          pcd: "",
-          frontImage: "",
-          leftImage: "",
-          annotations: []
-        }
-      ]
-    }
-    setCurrentClip(mockData)
-  }, [])
+          pcd: '',
+          frontImage: '',
+          leftImage: '',
+          annotations: [],
+        },
+      ],
+    };
+    setCurrentClip(mockData);
+  }, []);
 
-  const loadNext = useCallback(() => {
-  }, [])
+  const loadNext = useCallback(() => {}, []);
   const nextFrame = useCallback(() => {
-    return undefined
-  }, [])
+    return undefined;
+  }, []);
   const preFrame = useCallback(() => {
-    return undefined
-  }, [])
+    return undefined;
+  }, []);
 
-  const value = useShallowMemo({ currentFrame, currentClip, loadNext, nextFrame, preFrame });
+  const value = useShallowMemo({
+    currentFrame,
+    currentClip,
+    loadNext,
+    nextFrame,
+    preFrame,
+  });
 
   return <ClipContext.Provider value={value}>{props.children}</ClipContext.Provider>;
 }

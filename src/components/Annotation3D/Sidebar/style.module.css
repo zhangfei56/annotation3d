@@ -1,7 +1,6 @@
-.mainBody{
+.mainBody {
   min-height: 100vh;
   display: flex;
-
 }
 
 .iconCol {
@@ -9,4 +8,3 @@
 
   /* width: 20px; */
 }
-

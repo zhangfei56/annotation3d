@@ -1,4 +1,3 @@
-
 export enum NumericType {
   UNKNOWN = 0,
 
@@ -18,7 +17,6 @@ export enum NumericType {
 
   FLOAT64 = 8,
 }
-
 
 export type PackedElementField = {
   /** Name of the field */

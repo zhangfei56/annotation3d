@@ -1,5 +1,5 @@
-import React from "react";
-import { PropsWithChildren } from "react";
+import React from 'react';
+import { PropsWithChildren } from 'react';
 
 /**
  * Reduces the amount of nesting required to wrap a subtree with multiple React context providers.
@@ -11,7 +11,8 @@ export default function MultiProvider({
   providers,
 }: PropsWithChildren<{ providers: readonly JSX.Element[] }>): JSX.Element {
   const wrapped = providers.reduceRight(
-    (wrappedChildren, provider) => React.cloneElement(provider, undefined, wrappedChildren),
+    (wrappedChildren, provider) =>
+      React.cloneElement(provider, undefined, wrappedChildren),
     children,
   );
   // TS requires our return type to be Element instead of Node

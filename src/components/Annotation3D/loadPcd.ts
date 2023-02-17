@@ -1,17 +1,15 @@
+import axios from 'axios';
+import { useCallback, useEffect, useState } from 'react';
+import * as THREE from 'three';
 
-import { parsePCD } from '../../utils/pcdParser'
-import { useState, useEffect, useCallback } from 'react'
-import * as THREE from 'three'
-
-import pcdUrl from '../../assets/frm.pcd'
-import imageUrl from '../../assets/11.png'
-import axios from 'axios'
-import { getReader } from './ThreeDee/fieldReaders'
-import {PointCloud} from './Shapes/PointCloud'
-import Renderer from './Renderer'
-import { getColorConverter } from './ThreeDee/colors'
-import SceneManager from './sceneManager'
-
+import imageUrl from '../../assets/11.png';
+import pcdUrl from '../../assets/frm.pcd';
+import { parsePCD } from '../../utils/pcdParser';
+import Renderer from './Renderer';
+import SceneManager from './sceneManager';
+import { PointCloud } from './Shapes/PointCloud';
+import { getColorConverter } from './ThreeDee/colors';
+import { getReader } from './ThreeDee/fieldReaders';
 
 export type PointField = Readonly<{
   name: string;
@@ -20,7 +18,6 @@ export type PointField = Readonly<{
   count: number;
   mask?: DataView;
 }>;
-
 
 export enum DATATYPE {
   INT8 = 1,
@@ -35,23 +32,23 @@ export enum DATATYPE {
 
 function toDatatype(type: string, size: number) {
   switch (`${type}${size}`) {
-    case "U1":
+    case 'U1':
       return DATATYPE.UINT8;
-    case "U2":
+    case 'U2':
       return DATATYPE.UINT16;
-    case "U4":
+    case 'U4':
       return DATATYPE.UINT32;
-    case "U8":
+    case 'U8':
       return DATATYPE.UINT32;
-    case "I1":
+    case 'I1':
       return DATATYPE.INT8;
-    case "I2":
+    case 'I2':
       return DATATYPE.INT16;
-    case "I4":
+    case 'I4':
       return DATATYPE.INT32;
-    case "F4":
+    case 'F4':
       return DATATYPE.FLOAT32;
-    case "F8":
+    case 'F8':
       return DATATYPE.FLOAT64;
     default:
       throw new Error(`Unknow Datatype in type='${type}' and size=${size}`);
@@ -60,16 +57,15 @@ function toDatatype(type: string, size: number) {
 const tempColor = { r: 0, g: 0, b: 0, a: 0 };
 
 export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
-  const res = await axios.get(pcdUrl, {responseType: 'arraybuffer'})
-  const buf = res.data
-  
+  const res = await axios.get(pcdUrl, { responseType: 'arraybuffer' });
+  const buf = res.data;
 
   const { header, content } = parsePCD(buf);
 
   const fieldObjs: PointField[] = header.fieldNames.map((name) => {
     const field = header.fields[name];
     if (field == undefined) {
-      throw new Error("Bad Header Name: " + name);
+      throw new Error('Bad Header Name: ' + name);
     }
     return {
       name,
@@ -79,35 +75,35 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
     };
   });
 
-  const stride = header.rowSize
+  const stride = header.rowSize;
   // get reader
-  let xReader 
-  let yReader
-  let zReader
-  let colorReader
-  for(let i = 0; i < fieldObjs.length; i++) {
-    const fieldObj= fieldObjs[i]
-    if(fieldObj.name ==='x'){
-      xReader = getReader(fieldObj, stride )
-    } else if(fieldObj.name ==='y'){
-      yReader  = getReader(fieldObj, stride )
-    } else if(fieldObj.name ==='z'){
-      zReader = getReader(fieldObj, stride)
-    } else if(fieldObj.name ==='intensity'){
-      colorReader = getReader(fieldObj, stride)
+  let xReader;
+  let yReader;
+  let zReader;
+  let colorReader;
+  for (let i = 0; i < fieldObjs.length; i++) {
+    const fieldObj = fieldObjs[i];
+    if (fieldObj.name === 'x') {
+      xReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'y') {
+      yReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'z') {
+      zReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'intensity') {
+      colorReader = getReader(fieldObj, stride);
     }
   }
   const pointCloud = new PointCloud();
-  sceneManager.addShape(pointCloud)
+  sceneManager.addShape(pointCloud);
   const geometry = pointCloud.geometry;
 
-  const pointCount = header.points
-  const pointStep = stride
+  const pointCount = header.points;
+  const pointStep = stride;
 
-  geometry.resize(pointCount)
+  geometry.resize(pointCount);
   const positionAttribute = geometry.attributes.position!;
 
-  const colorAttribute = geometry.attributes.color
+  const colorAttribute = geometry.attributes.color;
 
   const colorConverter = getColorConverter(
     {
@@ -115,7 +111,7 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
       colorMap: 'turbo',
       flatColor: '',
       gradient: ['', ''],
-      explicitAlpha: 0
+      explicitAlpha: 0,
     },
     0,
     255,
@@ -126,7 +122,7 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
     const pointOffset = i * pointStep;
     const x = xReader?.(view, pointOffset) ?? 0;
     const y = yReader?.(view, pointOffset) ?? 0;
-    const z = zReader?.(view, pointOffset)?? 0;
+    const z = zReader?.(view, pointOffset) ?? 0;
     positionAttribute.setXYZ(i, x, y, z);
 
     const colorValue = colorReader?.(view, pointOffset) ?? 0;
@@ -137,10 +133,9 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
   colorAttribute.needsUpdate = true;
   geometry.computeBoundingSphere();
 
-  renderder.render()
-  
-  // 
+  renderder.render();
 
-  return fieldObjs
+  //
+
+  return fieldObjs;
 }
-
