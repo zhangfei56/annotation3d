@@ -1,15 +1,4 @@
 // import Layout from 'virtual:antd-layout'
-import ProLayout, { PageLoading, SettingDrawer } from '@ant-design/pro-layout';
-// import { useQueryClient } from 'react-query';
-import { useLocation, useNavigate, Outlet } from 'react-router-dom';
-
-import { routes, layoutRoutes, defaultMenus } from '@/routes';
-
-import Footer from './components/Footer';
-import RightContent from './components/RightContent';
-import { useLayout } from './hooks';
-import { useMemo, useState } from 'react';
-import { Button, Divider, Dropdown, Input, Popover, theme } from 'antd';
 import {
   CaretDownFilled,
   DoubleRightOutlined,
@@ -21,34 +10,33 @@ import {
   SearchOutlined,
   SmileOutlined,
 } from '@ant-design/icons';
+import { ProSettings } from '@ant-design/pro-components';
+import ProLayout, { PageLoading, SettingDrawer } from '@ant-design/pro-layout';
+import { Button, Divider, Dropdown, Input, Popover, theme } from 'antd';
+import { useMemo, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+
+import { layoutRoutes, routes } from '@/routes';
+
+import Footer from './components/Footer';
+import RightContent from './components/RightContent';
+// import { useLayout } from './hooks';
 export * from './hooks';
 
-function convertToProRoutes(tempRoutes) {
-  if (tempRoutes.length > 0) {
-    return tempRoutes.map((route) => {
-      const children = route.children;
-      delete route.children;
-      if (children?.length > 0) {
-        return {
-          ...route,
-          routes: convertToProRoutes(children),
-        };
-      }
-      return route;
-    });
-  }
-}
-
 export default function LayoutWrapper() {
-  // const queryClient = useQueryClient();
   // const { data: currentUser, isLoading } = useUserInfoQuery();
+  const [settings, setSetting] = useState<Partial<ProSettings> | undefined>({
+    fixSiderbar: true,
+    layout: 'mix',
+    splitMenus: true,
+  });
 
   const loginData = {
     status: 'ok',
   };
   const isLoading = false;
 
-  const [layout, updateLayout] = useLayout();
+  // const [layout, updateLayout] = useLayout();
   const location = useLocation();
   const navigate = useNavigate();
   // const intl = useIntl();
@@ -60,14 +48,6 @@ export default function LayoutWrapper() {
 
   return (
     <ProLayout
-      fixSiderbar={true}
-      layout="mix"
-      splitMenus={true}
-      // route={{
-      //   routes: proRoutes,
-      // }}
-      // menu={defaultMenus}
-      // menu={{ request: async () => defaultMenus }}
       menu={{ request: async () => layoutRoutes }}
       // rightContentRender={() => <RightContent />}
       // waterMarkProps={{
@@ -143,11 +123,22 @@ export default function LayoutWrapper() {
           {dom}
         </div>
       )}
+      {...settings}
       // 自定义 403 页面
       // unAccessible: <div>unAccessible</div>,
       // 增加一个 loading 的状态
       // {...layout}
     >
+      <SettingDrawer
+        pathname={pathname}
+        enableDarkTheme
+        getContainer={() => document.getElementById('test-pro-layout')}
+        settings={settings}
+        onSettingChange={(changeSetting) => {
+          setSetting(changeSetting);
+        }}
+        disableUrlParams={false}
+      />
       <Outlet />
     </ProLayout>
   );

@@ -1,16 +1,20 @@
 import { PieChartOutlined } from '@ant-design/icons';
-import LayoutWrapper from '../layouts';
+
+import Marker3D from '@/pages/Marker3D';
+import Login from '@/pages/user/Login';
 import Welcome from '@/pages/Welcome';
+
+import LayoutWrapper from '../layouts';
 
 export const layoutRoutes = [
   {
     path: '/',
-    name: 'welcome',
+    name: '标注',
     icon: <PieChartOutlined />,
     children: [
       {
         path: '/welcome',
-        name: 'one',
+        name: 'test',
         icon: <PieChartOutlined />,
         element: <Welcome />,
         children: [
@@ -25,9 +29,10 @@ export const layoutRoutes = [
     ],
   },
   {
-    path: '/demo',
-    name: 'demo',
+    path: '/annotation/3d',
+    name: '3D标注',
     icon: <PieChartOutlined />,
+    element: <Marker3D />,
   },
 ];
 export const routes = [
@@ -39,7 +44,7 @@ export const routes = [
       {
         name: 'login',
         path: 'login',
-        element: './user/Login',
+        element: <Login />,
       },
     ],
   },

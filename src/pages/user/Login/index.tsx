@@ -17,8 +17,9 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Footer from '@/layouts/components/Footer';
-import { getFakeCaptcha, useLoginMutation } from '@/services/ant-design-pro/login';
-import type { LoginParams, LoginResult } from '@/services/ant-design-pro/types';
+import { login } from '@/services/api';
+import { getFakeCaptcha } from '@/services/login';
+import type { LoginParams, LoginResult } from '@/services/typings.d.ts';
 
 import styles from './index.module.less';
 
@@ -41,8 +42,6 @@ const Login: React.FC = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-
-  const { mutateAsync: login } = useLoginMutation();
 
   const handleSubmit = async (values: LoginParams) => {
     try {

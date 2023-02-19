@@ -1,11 +1,12 @@
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { Space } from 'antd';
+import React from 'react';
+
+import { useLayout } from '@/layouts';
+
+import HeaderSearch from '../HeaderSearch';
 import Avatar from './AvatarDropdown';
 import styles from './index.module.less';
-import HeaderSearch from '../HeaderSearch';
-import { Space } from 'antd';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import React from 'react';
-import { SelectLang } from '@/components';
-import { useLayout } from '@/layouts';
 
 export type SiderTheme = 'light' | 'dark';
 
@@ -54,7 +55,7 @@ const GlobalHeaderRight: React.FC = () => {
         <QuestionCircleOutlined />
       </span>
       <Avatar />
-      <SelectLang className={styles.action} />
+      {/* <SelectLang className={styles.action} /> */}
     </Space>
   );
 };
