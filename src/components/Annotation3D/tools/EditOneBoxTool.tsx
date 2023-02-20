@@ -7,13 +7,13 @@ import SceneManager from '../SceneManager';
 import Box3D from '../Shapes/Box3D';
 import BaseTool from './BaseTool';
 
-export class CreateBoxTool extends BaseTool {
-  public activeKeyCode = 'KeyA';
+export class EditOneBoxTool extends BaseTool {
+  // 非快捷键触发
+  public activeKeyCode = 'KeyEE';
 
   private input: InputEmitter;
   private box3d: Box3D | null = null;
   private renderer: Renderer;
-  private startPoint: Point2D | null = null;
   private parentBus: EventEmitter;
   private sceneManager: SceneManager;
 
@@ -30,7 +30,8 @@ export class CreateBoxTool extends BaseTool {
     this.sceneManager = sceneManager;
   }
 
-  public active(): void {
+  public active(_box: Box3D): void {
+    this.box3d = _box;
     this.input.on(EventType.PointerDownEvent, this.onMouseDown);
     this.enabled = true;
   }
@@ -42,13 +43,9 @@ export class CreateBoxTool extends BaseTool {
   onMouseDown = (point: Point2D, worldPosition: THREE.Vector3) => {
     console.log('onMouseDown', point);
     if (!this.box3d) {
-      this.startPoint = {
-        x: worldPosition.x,
-        y: worldPosition.y,
-      };
-      worldPosition.z = 0;
-      this.box3d = new Box3D(worldPosition, new Vector3(0.1, 0.1, 1));
-      this.sceneManager.addAnnotationBox(this.box3d);
+
+      // this.box3d = new Box3D(worldPosition, new Vector3(0.1, 0.1, 1));
+      // this.sceneManager.addShape(this.box3d);
 
       this.renderer.render();
 
@@ -59,16 +56,12 @@ export class CreateBoxTool extends BaseTool {
 
   onMouseMove = (point: Point2D, worldPosition: THREE.Vector3) => {
     if (this.box3d) {
-      this.box3d.box.position.set(
-        (this.startPoint!.x + worldPosition.x) / 2,
-        (this.startPoint!.y + worldPosition.y) / 2,
-        0,
-      );
-      this.box3d.changeSize({
-        x: Math.abs(worldPosition.x - this.startPoint!.x),
-        y: Math.abs(worldPosition.y - this.startPoint!.y),
-        z: 1,
-      });
+
+      // this.box3d.changeSize({
+      //   x: Math.abs(worldPosition.x - this.startPoint!.x),
+      //   y: Math.abs(worldPosition.y - this.startPoint!.y),
+      //   z: 1,
+      // });
 
       this.renderer.render();
     }
@@ -76,10 +69,10 @@ export class CreateBoxTool extends BaseTool {
 
   onMouseUp = (point: Point2D) => {
     // save
-    this.sceneManager.addAnnotationBox(this.box3d!);
+    // this.sceneManager.addShape(this.box3d!);
 
-    this.box3d = null;
-    this.startPoint = null;
+    // this.box3d = null;
+    // this.startPoint = null;
 
     this.input.removeListener(EventType.PointerUpEvent, this.onMouseUp);
     this.input.removeListener(EventType.PointerMoveEvent, this.onMouseMove);

@@ -6,7 +6,7 @@ import imageUrl from '../../assets/11.png';
 import pcdUrl from '../../assets/frm.pcd';
 import { parsePCD } from '../../utils/pcdParser';
 import Renderer from './Renderer';
-import SceneManager from './sceneManager';
+import SceneManager from './SceneManager';
 import { PointCloud } from './Shapes/PointCloud';
 import { getColorConverter } from './ThreeDee/colors';
 import { getReader } from './ThreeDee/fieldReaders';
@@ -94,7 +94,7 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
     }
   }
   const pointCloud = new PointCloud();
-  sceneManager.addShape(pointCloud);
+  sceneManager.addPointCloud(pointCloud);
   const geometry = pointCloud.geometry;
 
   const pointCount = header.points;

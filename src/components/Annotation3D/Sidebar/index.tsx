@@ -30,9 +30,9 @@ export default function Sidebar(props: Props) {
   };
 
   const itemRender = () => {
-    return items.map((item) => {
+    return items.map((item, index) => {
       return (
-        <Tooltip title={item.title}>
+        <Tooltip title={item.title} key={`side-title${index}}`}>
           <Button
             type="link"
             onClick={() => {

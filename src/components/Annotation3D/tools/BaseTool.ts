@@ -6,7 +6,7 @@ abstract class BaseTool {
   // 激活快捷键
   public abstract activeKeyCode: string;
 
-  public abstract active(): void;
+  public abstract active(instance?: unknown): void;
 
   public abstract deative(): void;
 }

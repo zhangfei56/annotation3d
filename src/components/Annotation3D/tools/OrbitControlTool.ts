@@ -400,6 +400,7 @@ export class OrbitControlTool extends BaseTool {
   };
 
   onMouseMove = (_p1, _p2, event: PointerEvent) => {
+    console.log('onMouseMove');
     switch (this.state) {
       case STATE.ROTATE:
         if (this.enableRotate === false) return;

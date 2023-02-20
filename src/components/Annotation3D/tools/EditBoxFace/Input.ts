@@ -43,10 +43,6 @@ export class InputEmitter extends EventEmitter {
     this.raycaster.params.Line!.threshold = 0.02;
   }
 
-  public addListerObject(obj: THREE.Object3D) {
-    this.listenerObjects.push(obj);
-  }
-
   public removeListerObject(obj: THREE.Object3D) {
     const index = this.listenerObjects.indexOf(obj);
     if (index !== -1) {

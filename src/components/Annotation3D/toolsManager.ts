@@ -3,8 +3,11 @@ import EventEmitter from 'eventemitter3';
 import { EventType, InputEmitter } from './Input';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
+import { BaseShape } from './Shapes/BaseShape';
+import Box3D from './Shapes/Box3D';
 import BaseTool from './tools/BaseTool';
 import { CreateBoxTool } from './tools/CreateBoxTool';
+import { EditOneBoxTool } from './tools/EditOneBoxTool';
 import { OrbitControlTool } from './tools/OrbitControlTool';
 
 export class ToolsManager {
@@ -20,6 +23,7 @@ export class ToolsManager {
     RIGHT: 'ArrowRight',
     BOTTOM: 'ArrowDown',
   };
+  private editOneBoxTool;
 
   constructor(input: InputEmitter, renderder: Renderer, sceneManager: SceneManager) {
     this.input = input;
@@ -35,8 +39,16 @@ export class ToolsManager {
     this.tools.push(this.defaultTool);
     const createTool = new CreateBoxTool(input, renderder, this.eventBus, sceneManager);
     this.tools.push(createTool);
+    this.editOneBoxTool = new EditOneBoxTool(
+      input,
+      renderder,
+      this.eventBus,
+      sceneManager,
+    );
+    this.tools.push(this.editOneBoxTool);
 
     this.input.addListener(EventType.KeyDownEvent, this.onKeyDown);
+    this.input.addListener(EventType.ObjectChooseEvent, this.onObjectChooseEvent);
 
     this.eventBus.addListener('deactive', this.onDeactiveEvent);
   }
@@ -58,6 +70,12 @@ export class ToolsManager {
       activeTool.deative();
     }
     tool.active();
+  };
+
+  onObjectChooseEvent = (clickedObject: BaseShape) => {
+    if (this.getActiveTool() == this.defaultTool && clickedObject instanceof Box3D) {
+      this.activeTool(this.editOneBoxTool.activeKeyCode, this.editOneBoxTool);
+    }
   };
 
   onDeactiveEvent = () => {

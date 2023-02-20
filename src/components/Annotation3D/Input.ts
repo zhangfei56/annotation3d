@@ -3,6 +3,7 @@ import { KeyboardEvent } from 'react';
 import * as THREE from 'three';
 
 import Renderder from './Renderer';
+import SceneManager from './SceneManager';
 import Box3D from './Shapes/Box3D';
 export const EventType = {
   PointerDownEvent: 'PointerDownEvent',
@@ -30,19 +31,24 @@ export class InputEmitter extends EventEmitter {
   private camera: THREE.Camera;
 
   private raycaster: THREE.Raycaster;
-  private listenerObjects: Box3D[] = [];
 
   // [-1, 1]
   private unitCursorCoords = new THREE.Vector2();
   private worldSpaceCursorCoords?: THREE.Vector3;
 
-  private lastDownTarget: EventTarget | undefined;
+  private lastDownTarget: EventTarget | null | undefined;
 
-  public constructor(canvas: HTMLCanvasElement, renderer: Renderder) {
+  private sceneManager: SceneManager;
+
+  public constructor(
+    canvas: HTMLCanvasElement,
+    camera: THREE.Camera,
+    sceneManager: SceneManager,
+  ) {
     super();
     this.canvas = canvas;
-
-    this.camera = renderer.getCamera();
+    this.camera = camera;
+    this.sceneManager = sceneManager;
 
     this.canvas.addEventListener('pointermove', this.onPointerMove);
     document.addEventListener('pointerdown', this.onPointerDown);
@@ -53,17 +59,6 @@ export class InputEmitter extends EventEmitter {
 
     //
     // this.tools.push(new OrbitControlTool(this, renderer,  this.camera, canvas))
-  }
-
-  public addListerObject(obj: Box3D) {
-    this.listenerObjects.push(obj);
-  }
-
-  public removeListerObject(obj: THREE.Object3D) {
-    const index = this.listenerObjects.indexOf(obj);
-    if (index !== -1) {
-      this.listenerObjects.splice(this.listenerObjects.indexOf(obj), 1);
-    }
   }
 
   private setCurrentPosition(event: MouseEvent) {
@@ -96,7 +91,7 @@ export class InputEmitter extends EventEmitter {
   };
 
   private onPointerDown = (event: PointerEvent) => {
-    if (this.lastDownTarget == this.canvas) {
+    if (event.target == this.canvas) {
       event.preventDefault();
       this.setCurrentPosition(event);
 
@@ -109,9 +104,8 @@ export class InputEmitter extends EventEmitter {
 
       this.canvas.setPointerCapture(event.pointerId);
       this.canvas.addEventListener('pointerup', this.onPointerUp);
-
-      this.listenerObjects.forEach((listenerObj) => {
-        const result = this.raycaster.intersectObject(listenerObj.box);
+      this.sceneManager.getMovedListers().forEach((listenerObj) => {
+        const result = this.raycaster.intersectObject(listenerObj.getThreeObject());
         if (result.length) {
           this.emit(EventType.ObjectChooseEvent, listenerObj);
         }

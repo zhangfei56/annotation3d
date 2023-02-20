@@ -57,7 +57,7 @@ function Annotation3D(): JSX.Element {
       upEditCanvas &&
       frontEditCanvas
     ) {
-      input = new InputEmitter(canvas!, renderer);
+      input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager);
       new ToolsManager(input, renderer, sceneManager);
       loadPcd(renderer, sceneManager);
 
