@@ -4,9 +4,10 @@ import { EventType, InputEmitter } from './Input';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
-import Box3D from './Shapes/Box3D';
+import CubeObject from './Shapes/CubeObject';
 import BaseTool from './tools/BaseTool';
 import { CreateBoxTool } from './tools/CreateBoxTool';
+import { EditBoxFace } from './tools/EditBoxFace';
 import { EditOneBoxTool } from './tools/EditOneBoxTool';
 import { OrbitControlTool } from './tools/OrbitControlTool';
 
@@ -25,7 +26,12 @@ export class ToolsManager {
   };
   private editOneBoxTool;
 
-  constructor(input: InputEmitter, renderder: Renderer, sceneManager: SceneManager) {
+  constructor(
+    input: InputEmitter,
+    renderder: Renderer,
+    sceneManager: SceneManager,
+    multiEditViews: EditBoxFace[],
+  ) {
     this.input = input;
     this.eventBus = new EventEmitter();
     this.defaultTool = new OrbitControlTool(
@@ -44,6 +50,7 @@ export class ToolsManager {
       renderder,
       this.eventBus,
       sceneManager,
+      multiEditViews,
     );
     this.tools.push(this.editOneBoxTool);
 
@@ -73,8 +80,13 @@ export class ToolsManager {
   };
 
   onObjectChooseEvent = (clickedObject: BaseShape) => {
-    if (this.getActiveTool() == this.defaultTool && clickedObject instanceof Box3D) {
+    if (
+      this.getActiveTool() == this.defaultTool &&
+      clickedObject instanceof CubeObject &&
+      clickedObject.type === 'Annotation3DBox'
+    ) {
       this.activeTool(this.editOneBoxTool.activeKeyCode, this.editOneBoxTool);
+      this.editOneBoxTool.setSelected(clickedObject);
     }
   };
 

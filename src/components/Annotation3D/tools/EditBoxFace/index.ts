@@ -2,24 +2,31 @@ import * as THREE from 'three';
 
 import Renderer from '../../Renderer';
 import SceneManager from '../../SceneManager';
-import Box3D from '../../Shapes/Box3D';
+import CubeObject from '../../Shapes/CubeObject';
 import { DashedHelperLine, HelperLineConfig } from './DashedHelperLine';
 import { EventType, InputEmitter, Point2D } from './Input';
+import { CameraHelper } from 'three';
 
-// 面的法线顺序 右 左 上 下 前 后
-// 0, 8, 16
-// camera
-//camera.rotateY(Math.PI / 2)
-//camera.rotateX(-Math.PI / 2)
-// without rotation
+/*
+          5____4
+        1/___0/|
+        | 6__|_7_______> x 
+        2/___3/
+        /
+       /
+      y
+
+		*/
+
 export enum BoxFaceEnum {
-  Right,
+  Right, // 0 4 7 3
   Left,
-  Up,
-  Down,
-  Front,
+  Front, // 1 0 3 2
   Back,
+  Up, // 0 1 5 4
+  Down,
 }
+
 const DashedMaterial = new THREE.LineDashedMaterial({
   color: '#000',
   linewidth: 0.05,
@@ -43,7 +50,7 @@ type FaceDirect = keyof typeof HelperLineConfig;
 type xyz = 'x' | 'y' | 'z';
 
 export class EditBoxFace {
-  private _box?: Box3D;
+  private _box?: CubeObject;
   private _mainRenderer: Renderer;
   private _level: number;
   private _camera: THREE.OrthographicCamera;
@@ -71,8 +78,11 @@ export class EditBoxFace {
 
     this._camera = new THREE.OrthographicCamera();
     this._camera.near = 1;
-    this._camera.far = 30;
+    this._camera.far = 500;
     // this._camera.layers.enable(this._level)
+
+    const cameraHelper = new CameraHelper(this._camera);
+    this._sceneManager.addHelperObject(cameraHelper);
     this._input = new InputEmitter(canvas, this._camera);
 
     // const cameraHelper = new THREE.CameraHelper(this._camera);
@@ -92,15 +102,14 @@ export class EditBoxFace {
       antialias: true,
     });
 
-    this.render();
-
     this._input.addListener(EventType.MouseUpEvent, this.handleMouseUp);
     this._input.addListener(EventType.MouseDownEvent, this.handleMouseDown);
     this._input.addListener(EventType.MouseMoveEvent, this.handleMouseMove);
   }
 
-  public setBox(box: Box3D) {
+  public setBox(box: CubeObject) {
     this._box = box;
+    this.render();
   }
 
   private clicked = false;
@@ -228,17 +237,17 @@ export class EditBoxFace {
       const changeAttribute =
         helperConfig.x == undefined ? boxAttributes[1] : boxAttributes[0];
 
-      const attributeSize = changeHalf + this._box.box.scale[changeAttribute] / 2;
+      const attributeSize = changeHalf + this._box.scale[changeAttribute] / 2;
 
       const move = this.getMovingDirection(direction);
 
       const boxPosition = this.getBoxMovePosition(
         move,
-        (changeHalf - this._box.box.scale[changeAttribute] / 2) / 2,
+        (changeHalf - this._box.scale[changeAttribute] / 2) / 2,
       );
 
-      this._box.box.position.set(boxPosition.x, boxPosition.y, boxPosition.z);
-      const updateScale = this._box.box.scale.clone();
+      this._box.position.set(boxPosition.x, boxPosition.y, boxPosition.z);
+      const updateScale = this._box.scale.clone();
       updateScale[changeAttribute] = attributeSize;
       this._box.changeSize(updateScale);
 
@@ -307,15 +316,15 @@ export class EditBoxFace {
   }
 
   private getFaceAttributes(): xyz[] {
-    let result: xyz[] = ['x', 'y'];
+    let result: xyz[] = ['x', 'z'];
     switch (this._boxFace) {
       case BoxFaceEnum.Left:
-        result = ['z', 'y'];
+      case BoxFaceEnum.Right:
+        result = ['y', 'z'];
         break;
       case BoxFaceEnum.Up:
-        result = ['x', 'z'];
-        break;
-      case BoxFaceEnum.Front:
+      case BoxFaceEnum.Down:
+        result = ['x', 'y'];
         break;
       default:
     }
@@ -327,26 +336,24 @@ export class EditBoxFace {
       return [];
     }
     const attributes = this.getFaceAttributes();
-    const sides = [
-      this._box.box.scale[attributes[0]],
-      this._box.box.scale[attributes[1]],
-    ];
+    const sides = [this._box.scale[attributes[0]], this._box.scale[attributes[1]]];
 
     return sides;
   }
 
   private getBoxMovePosition(face: BoxFaceEnum, distance: number): THREE.Vector3 {
     const boxWorldNormalMatrix = new THREE.Matrix3().getNormalMatrix(
-      this._box!.box.matrixWorld,
+      this._box!.matrixWorld,
     );
 
     // set camera position
     const tempVector3 = new THREE.Vector3();
+    const geometry = this._box!.geometry;
     tempVector3.fromBufferAttribute(
-      this._box!.box.geometry.attributes.normal,
-      face.valueOf() * 4,
+      geometry.attributes.normal,
+      geometry.index!.array[geometry.groups[face.valueOf()].start],
     );
-    const boxPosition = this._box!.box.position.clone();
+    const boxPosition = this._box!.position.clone();
     tempVector3
       .applyMatrix3(boxWorldNormalMatrix)
       .normalize()
@@ -364,21 +371,26 @@ export class EditBoxFace {
     this._camera.position.set(tempVector3.x, tempVector3.y, tempVector3.z);
 
     // update direction
-    this._camera.setRotationFromQuaternion(this._box.box.quaternion);
-    switch (this._boxFace) {
-      case BoxFaceEnum.Left:
-        this._camera.rotateY(-Math.PI / 2);
-        break;
-      case BoxFaceEnum.Up:
-        this._camera.rotateX(-Math.PI / 2);
-        break;
-      case BoxFaceEnum.Front:
-        break;
-      default:
-    }
+    // this._camera.setRotationFromQuaternion(this._box.quaternion);
+    // switch (this._boxFace) {
+    //   case BoxFaceEnum.Left:
+    //     this._camera.rotateY(-Math.PI / 2);
+    //     break;
+    //   case BoxFaceEnum.Up:
+    //     this._camera.rotateX(-Math.PI / 2);
+    //     break;
+    //   case BoxFaceEnum.Front:
+    //     break;
+    //   default:
+    // }
+
+    this._camera.up.set(0, 1, 0);
+    this._camera.lookAt(this._box.position);
 
     const faceSides = this.getFaceLengthAndWidth();
+    console.log(faceSides);
     const maxLineSize = Math.max(...faceSides);
+    console.log(maxLineSize);
     this._camera.left = -maxLineSize;
     this._camera.right = maxLineSize;
     this._camera.top = maxLineSize;

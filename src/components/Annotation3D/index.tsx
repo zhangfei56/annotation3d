@@ -13,7 +13,7 @@ import { loadPcd } from './loadPcd';
 import { ClipContextProvider } from './providers/ClipContextProvider';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
-import Box3D from './Shapes/Box3D';
+import CubeObject from './Shapes/CubeObject';
 import Sidebar, { SidebarItem } from './Sidebar';
 import { CameraSide } from './Sidebar/CameraSide';
 import { VertexNormalsHelper } from './ThreeDee/VertexNormalsHelper';
@@ -38,14 +38,7 @@ function Annotation3D(): JSX.Element {
   }, [canvas]);
 
   let input;
-  let editTools: EditBoxFace[] = [];
 
-  const onBoxClick = (box) => {
-    editTools.forEach((tool) => {
-      tool.setBox(box);
-      tool.render();
-    });
-  };
   let isInitEdit = false;
 
   useEffect(() => {
@@ -58,17 +51,16 @@ function Annotation3D(): JSX.Element {
       frontEditCanvas
     ) {
       input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager);
-      new ToolsManager(input, renderer, sceneManager);
+
+      const multipleViews = [
+        // new EditBoxFace(leftEditCanvas!, renderer, 1, BoxFaceEnum.Left, sceneManager),
+        new EditBoxFace(upEditCanvas!, renderer, 1, BoxFaceEnum.Up, sceneManager),
+        // new EditBoxFace(frontEditCanvas!, renderer, 1, BoxFaceEnum.Front, sceneManager),
+      ];
+      new ToolsManager(input, renderer, sceneManager, multipleViews);
       loadPcd(renderer, sceneManager);
 
       renderer.render();
-
-      editTools = [
-        new EditBoxFace(leftEditCanvas!, renderer, 1, BoxFaceEnum.Left, sceneManager),
-        new EditBoxFace(upEditCanvas!, renderer, 1, BoxFaceEnum.Up, sceneManager),
-        new EditBoxFace(frontEditCanvas!, renderer, 1, BoxFaceEnum.Front, sceneManager),
-      ];
-      input.on(EventType.ObjectChooseEvent, onBoxClick);
 
       isInitEdit = true;
     }

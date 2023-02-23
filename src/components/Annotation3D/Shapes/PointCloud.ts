@@ -22,11 +22,12 @@ export function createPoints(
   return points;
 }
 
-export class PointCloud extends BaseShape {
+export class PointCloud extends Object3D implements BaseShape {
   points: Points;
   geometry: DynamicBufferGeometry;
   public constructor() {
     super();
+    this.type = 'PointCloud';
     this.geometry = createGeometry(DynamicDrawUsage);
 
     const material = new PointsMaterial({
@@ -40,11 +41,12 @@ export class PointCloud extends BaseShape {
     });
 
     this.points = createPoints(this.geometry, material);
+    this.add(this.points);
   }
 
   public updatePoint() {}
 
-  public getThreeObject(): Points {
-    return this.points;
-  }
+  // public getThreeObject(): Points {
+  //   return this.points;
+  // }
 }

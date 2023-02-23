@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 import Renderder from './Renderer';
 import SceneManager from './SceneManager';
-import Box3D from './Shapes/Box3D';
+import CubeObject from './Shapes/CubeObject';
 export const EventType = {
   PointerDownEvent: 'PointerDownEvent',
   PointerUpEvent: 'PointerUpEvent',
@@ -105,7 +105,7 @@ export class InputEmitter extends EventEmitter {
       this.canvas.setPointerCapture(event.pointerId);
       this.canvas.addEventListener('pointerup', this.onPointerUp);
       this.sceneManager.getMovedListers().forEach((listenerObj) => {
-        const result = this.raycaster.intersectObject(listenerObj.getThreeObject());
+        const result = this.raycaster.intersectObject(listenerObj);
         if (result.length) {
           this.emit(EventType.ObjectChooseEvent, listenerObj);
         }

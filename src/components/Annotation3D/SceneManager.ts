@@ -1,17 +1,18 @@
 import * as THREE from 'three';
+import { Object3D } from 'three';
 
 import { BaseShape } from './Shapes/BaseShape';
-import Box3D from './Shapes/Box3D';
+import CubeObject from './Shapes/CubeObject';
 import { PointCloud } from './Shapes/PointCloud';
 
 export default class SceneManager {
   public scene: THREE.Scene;
 
-  private annotationBoxes: Box3D[];
+  private annotationBoxes: CubeObject[];
 
   private pointCouldShapes: PointCloud[];
 
-  private helperShapes: BaseShape[] = [];
+  private helperShapes: Object3D[] = [];
 
   public constructor() {
     this.scene = new THREE.Scene();
@@ -19,9 +20,11 @@ export default class SceneManager {
     this.pointCouldShapes = [];
   }
 
-  public addHelperObject() {}
+  public addHelperObject(helperObject) {
+    this.addShape(helperObject);
+  }
 
-  public addAnnotationBox(box3d: Box3D) {
+  public addAnnotationBox(box3d: CubeObject) {
     this.annotationBoxes.push(box3d);
     this.addShape(box3d);
   }
@@ -29,13 +32,13 @@ export default class SceneManager {
     this.pointCouldShapes.push(pointCloud);
     this.addShape(pointCloud);
   }
-  public addHelperShapes(helperShape: BaseShape) {
+  public addHelperShapes(helperShape: Object3D) {
     this.helperShapes.push(helperShape);
     this.addShape(helperShape);
   }
 
-  private addShape(shape: BaseShape) {
-    this.scene.add(shape.getThreeObject());
+  private addShape(shape: Object3D) {
+    this.scene.add(shape);
   }
 
   public generateShapeFromFrame() {}

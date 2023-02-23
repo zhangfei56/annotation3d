@@ -4,14 +4,14 @@ import { Vector3 } from 'three';
 import { EventType, InputEmitter, MouseLevel, Point2D } from '../Input';
 import Renderer from '../Renderer';
 import SceneManager from '../SceneManager';
-import Box3D from '../Shapes/Box3D';
+import CubeObject from '../Shapes/CubeObject';
 import BaseTool from './BaseTool';
 
 export class CreateBoxTool extends BaseTool {
   public activeKeyCode = 'KeyA';
 
   private input: InputEmitter;
-  private box3d: Box3D | null = null;
+  private box3d: CubeObject | null = null;
   private renderer: Renderer;
   private startPoint: Point2D | null = null;
   private parentBus: EventEmitter;
@@ -47,7 +47,12 @@ export class CreateBoxTool extends BaseTool {
         y: worldPosition.y,
       };
       worldPosition.z = 0;
-      this.box3d = new Box3D(worldPosition, new Vector3(0.1, 0.1, 1));
+      this.box3d = new CubeObject(worldPosition, new Vector3(1, 1, 1), {
+        x: 0,
+        y: 0,
+        z: 0,
+        w: 0,
+      });
       this.sceneManager.addAnnotationBox(this.box3d);
 
       this.renderer.render();
@@ -59,16 +64,7 @@ export class CreateBoxTool extends BaseTool {
 
   onMouseMove = (point: Point2D, worldPosition: THREE.Vector3) => {
     if (this.box3d) {
-      this.box3d.box.position.set(
-        (this.startPoint!.x + worldPosition.x) / 2,
-        (this.startPoint!.y + worldPosition.y) / 2,
-        0,
-      );
-      this.box3d.changeSize({
-        x: Math.abs(worldPosition.x - this.startPoint!.x),
-        y: Math.abs(worldPosition.y - this.startPoint!.y),
-        z: 1,
-      });
+      this.box3d.updateMinMaxPoint(this.startPoint, worldPosition);
 
       this.renderer.render();
     }
