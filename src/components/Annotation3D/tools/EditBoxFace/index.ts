@@ -1,31 +1,22 @@
 import * as THREE from 'three';
+import { CameraHelper, Vector3 } from 'three';
 
 import Renderer from '../../Renderer';
 import SceneManager from '../../SceneManager';
 import CubeObject from '../../Shapes/CubeObject';
 import { DashedHelperLine, HelperLineConfig } from './DashedHelperLine';
 import { EventType, InputEmitter, Point2D } from './Input';
-import { CameraHelper } from 'three';
-
-/*
-          5____4
-        1/___0/|
-        | 6__|_7_______> x 
-        2/___3/
-        /
-       /
-      y
-
-		*/
 
 export enum BoxFaceEnum {
   Right, // 0 4 7 3
   Left,
-  Front, // 1 0 3 2
   Back,
+  Front, // 1 0 3 2
   Up, // 0 1 5 4
   Down,
 }
+
+type HelperLinePosition = 'Up' | 'Down' | 'Left' | 'Right';
 
 const DashedMaterial = new THREE.LineDashedMaterial({
   color: '#000',
@@ -61,6 +52,8 @@ export class EditBoxFace {
   private _tempHelperLine: DashedHelperLine;
   private _sceneManager: SceneManager;
 
+  private _cameraViewSize: number;
+
   private helperLines: DashedHelperLine[] = [];
 
   constructor(
@@ -75,6 +68,7 @@ export class EditBoxFace {
     this._boxFace = boxFace;
     this._canvas = canvas;
     this._sceneManager = sceneManager;
+    this._cameraViewSize = 1;
 
     this._camera = new THREE.OrthographicCamera();
     this._camera.near = 1;
@@ -95,7 +89,6 @@ export class EditBoxFace {
     this._tempHelperLine.getLine().visible = false;
     this._mainRenderer.scene.add(this._tempHelperLine.getLine());
 
-    this.createHelperLine();
     this._gl = new THREE.WebGLRenderer({
       canvas: this._canvas,
       alpha: true,
@@ -109,21 +102,52 @@ export class EditBoxFace {
 
   public setBox(box: CubeObject) {
     this._box = box;
+    this.adaptCameraViewToBox();
     this.render();
+  }
+
+  private adaptCameraViewToBox() {
+    const sideSizes = this.getFaceLengthAndWidth();
+
+    this._cameraViewSize = Math.max(...sideSizes);
   }
 
   private clicked = false;
 
-  private createHelperLine() {
-    Object.keys(HelperLineConfig).forEach((key) => {
-      const helperLine = new DashedHelperLine(
-        key as FaceDirect,
-        [ZeroVector3, ZeroVector3],
-        DashedMaterial,
-      );
-      this._mainRenderer.scene.add(helperLine.getLine());
-      this.helperLines.push(helperLine);
-    });
+  private getHelperLinePoints(direction: HelperLinePosition) {
+    const v1 = new THREE.Vector3(0, 0, -1);
+    const v2 = new THREE.Vector3(0, 0, -1);
+    const faceSides = this.getFaceLengthAndWidth();
+    const x = (faceSides[0] ?? 0) / (2 * this._cameraViewSize);
+    const y = (faceSides[1] ?? 0) / (2 * this._cameraViewSize);
+
+    switch (direction) {
+      case 'Up':
+        v1.x = -1;
+        v2.x = 1;
+        v1.y = y;
+        v2.y = y;
+        break;
+      case 'Down':
+        v1.x = -1;
+        v2.x = 1;
+        v1.y = -y;
+        v2.y = -y;
+        break;
+      case 'Left':
+        v1.x = -x;
+        v2.x = -x;
+        v1.y = 1;
+        v2.y = -1;
+        break;
+      case 'Right':
+        v1.x = x;
+        v2.x = x;
+        v1.y = 1;
+        v2.y = -1;
+        break;
+    }
+    return [v1, v2];
   }
 
   private updateHelperLine() {
@@ -152,18 +176,24 @@ export class EditBoxFace {
     worldPosition: THREE.Vector3,
     event: PointerEvent,
   ) => {
-    for (let i = 0; i < this.helperLines.length; i++) {
-      const helperLine = this.helperLines[i];
-      const intersects = this._input.getRaycaster().intersectObject(helperLine.getLine());
-      if (intersects.length > 0) {
-        this.clicked = true;
-        this._tempHelperLine.direction = helperLine.direction;
-        this._tempHelperLine.getLine().visible = true;
-        this._tempHelperLine.updatePoints(helperLine.getPoints());
-        this._gl.render(this._mainRenderer.scene, this._camera);
-        // this._mainRenderer.render()
-        break;
+    const result = this._input
+      .getRaycaster()
+      .intersectObject(this._box!.getSideLines(), false);
+    if (result.length > 0) {
+      const firstLineResult = result[0];
+      const directionSide = this.getDirectionByIndex(firstLineResult.index);
+      if (['Up', 'Down'].includes(directionSide)) {
+        document.body.style.cursor = 'row-resize';
+      } else {
+        document.body.style.cursor = 'col-resize';
       }
+      const boxSideLines = this._box!.getSideLines();
+      const points = this.getHelperLinePoints(directionSide);
+      this.clicked = true;
+      this._tempHelperLine.direction = directionSide;
+      this._tempHelperLine.getLine().visible = true;
+      this._tempHelperLine.updatePoints(points);
+      this._gl.render(this._mainRenderer.scene, this._camera);
     }
   };
 
@@ -192,25 +222,42 @@ export class EditBoxFace {
       return;
     }
 
-    const helperLines = this.helperLines.map((line) => line.getLine());
-    const intersects = this._input.getRaycaster().intersectObjects(helperLines);
-    if (intersects.length > 0) {
-      intersects[0].object.visible = true;
-      const visibleLine = this.helperLines.find((item) => item.getLine().visible);
-      if (['Up', 'Down'].includes(visibleLine!.direction)) {
+    const result = this._input
+      .getRaycaster()
+      .intersectObject(this._box?.getSideLines(), false);
+    if (result.length > 0) {
+      const firstLineResult = result[0];
+      const directionSide = this.getDirectionByIndex(firstLineResult.index);
+      if (['Up', 'Down'].includes(directionSide)) {
         document.body.style.cursor = 'row-resize';
       } else {
         document.body.style.cursor = 'col-resize';
       }
-      this._gl.render(this._mainRenderer.scene, this._camera);
+
+      console.log(firstLineResult.index);
     } else {
-      const visibleLines = this.helperLines.filter((line) => line.getLine().visible);
-      visibleLines.forEach((line) => {
-        line.getLine().visible = false;
-      });
       document.body.style.cursor = '';
-      this._gl.render(this._mainRenderer.scene, this._camera);
     }
+
+    // const helperLines = this.helperLines.map((line) => line.getLine());
+    // const intersects = this._input.getRaycaster().intersectObjects(helperLines);
+    // if (intersects.length > 0) {
+    //   intersects[0].object.visible = true;
+    //   const visibleLine = this.helperLines.find((item) => item.getLine().visible);
+    //   if (['Up', 'Down'].includes(visibleLine!.direction)) {
+    //     document.body.style.cursor = 'row-resize';
+    //   } else {
+    //     document.body.style.cursor = 'col-resize';
+    //   }
+    //   this._gl.render(this._mainRenderer.scene, this._camera);
+    // } else {
+    //   const visibleLines = this.helperLines.filter((line) => line.getLine().visible);
+    //   visibleLines.forEach((line) => {
+    //     line.getLine().visible = false;
+    //   });
+    //   document.body.style.cursor = '';
+    //   this._gl.render(this._mainRenderer.scene, this._camera);
+    // }
   };
 
   private handleMouseUp = (
@@ -225,31 +272,45 @@ export class EditBoxFace {
       const faceSides = this.getFaceLengthAndWidth();
       const maxLineSize = Math.max(...faceSides);
       const direction = this._tempHelperLine.direction;
-      const helperConfig = HelperLineConfig[direction];
 
-      const boxAttributes = this.getFaceAttributes();
+      let delta;
+      let moveDirection;
+      if (direction === 'Left') {
+        delta = -faceSides[0] / 2 - unitCursorCoords.x * this._cameraViewSize;
+        moveDirection = new Vector3(-1, 0, 0); // every face different
+      } else if (direction === 'Right') {
+        delta = -faceSides[0] / 2 + unitCursorCoords.x * this._cameraViewSize;
+        moveDirection = new Vector3(1, 0, 0);
+      }
 
-      const changeHalf =
-        helperConfig.x == undefined
-          ? helperConfig.y! * unitCursorCoords.y * maxLineSize
-          : helperConfig.x! * unitCursorCoords.x * maxLineSize;
+      debugger;
+      this._box.scaleDistanceByDirection(moveDirection, delta);
 
-      const changeAttribute =
-        helperConfig.x == undefined ? boxAttributes[1] : boxAttributes[0];
+      // const helperConfig = HelperLineConfig[direction];
 
-      const attributeSize = changeHalf + this._box.scale[changeAttribute] / 2;
+      // const boxAttributes = this.getFaceAttributes();
 
-      const move = this.getMovingDirection(direction);
+      // const changeHalf =
+      //   helperConfig.x == undefined
+      //     ? helperConfig.y! * unitCursorCoords.y * maxLineSize
+      //     : helperConfig.x! * unitCursorCoords.x * maxLineSize;
 
-      const boxPosition = this.getBoxMovePosition(
-        move,
-        (changeHalf - this._box.scale[changeAttribute] / 2) / 2,
-      );
+      // const changeAttribute =
+      //   helperConfig.x == undefined ? boxAttributes[1] : boxAttributes[0];
 
-      this._box.position.set(boxPosition.x, boxPosition.y, boxPosition.z);
-      const updateScale = this._box.scale.clone();
-      updateScale[changeAttribute] = attributeSize;
-      this._box.changeSize(updateScale);
+      // const attributeSize = changeHalf + this._box.scale[changeAttribute] / 2;
+
+      // const move = this.getMovingDirection(direction);
+
+      // const boxPosition = this.getBoxMovePosition(
+      //   move,
+      //   (changeHalf - this._box.scale[changeAttribute] / 2) / 2,
+      // );
+
+      // this._box.position.set(boxPosition.x, boxPosition.y, boxPosition.z);
+      // const updateScale = this._box.scale.clone();
+      // updateScale[changeAttribute] = attributeSize;
+      // this._box.changeSize(updateScale);
 
       this._tempHelperLine.getLine().visible = false;
 
@@ -258,6 +319,20 @@ export class EditBoxFace {
     }
     this.clicked = false;
   };
+
+  private getDirectionByIndex(index: number): HelperLinePosition {
+    let indexArr;
+    switch (this._boxFace) {
+      case BoxFaceEnum.Front:
+        indexArr = [0, 2, 4, 6];
+        break;
+      default:
+        break;
+    }
+    const positionIndex = indexArr?.indexOf(index);
+    const direction = ['Up', 'Left', 'Down', 'Right'][positionIndex];
+    return direction;
+  }
 
   private getMovingDirection(direction: keyof typeof HelperLineConfig) {
     let move = BoxFaceEnum.Up;
@@ -320,11 +395,11 @@ export class EditBoxFace {
     switch (this._boxFace) {
       case BoxFaceEnum.Left:
       case BoxFaceEnum.Right:
-        result = ['y', 'z'];
+        result = ['z', 'y'];
         break;
       case BoxFaceEnum.Up:
       case BoxFaceEnum.Down:
-        result = ['x', 'y'];
+        result = ['y', 'x'];
         break;
       default:
     }
@@ -366,35 +441,31 @@ export class EditBoxFace {
     if (!this._box) {
       return;
     }
+
     // this._box.updateMatrix()
     const tempVector3 = this.getBoxMovePosition(this._boxFace, 15);
     this._camera.position.set(tempVector3.x, tempVector3.y, tempVector3.z);
 
     // update direction
-    // this._camera.setRotationFromQuaternion(this._box.quaternion);
-    // switch (this._boxFace) {
-    //   case BoxFaceEnum.Left:
-    //     this._camera.rotateY(-Math.PI / 2);
-    //     break;
-    //   case BoxFaceEnum.Up:
-    //     this._camera.rotateX(-Math.PI / 2);
-    //     break;
-    //   case BoxFaceEnum.Front:
-    //     break;
-    //   default:
-    // }
+    this._camera.setRotationFromQuaternion(this._box.quaternion);
+    switch (this._boxFace) {
+      case BoxFaceEnum.Left:
+        this._camera.rotateY(-Math.PI / 2);
+        break;
+      case BoxFaceEnum.Up:
+        // this._camera.rotateX(-Math.PI / 2);
+        break;
+      case BoxFaceEnum.Front:
+        // this._camera.rotateY(Math.PI);
+        this._camera.rotateX(Math.PI / 2);
+        break;
+      default:
+    }
 
-    this._camera.up.set(0, 1, 0);
-    this._camera.lookAt(this._box.position);
-
-    const faceSides = this.getFaceLengthAndWidth();
-    console.log(faceSides);
-    const maxLineSize = Math.max(...faceSides);
-    console.log(maxLineSize);
-    this._camera.left = -maxLineSize;
-    this._camera.right = maxLineSize;
-    this._camera.top = maxLineSize;
-    this._camera.bottom = -maxLineSize;
+    this._camera.left = -this._cameraViewSize;
+    this._camera.right = this._cameraViewSize;
+    this._camera.top = this._cameraViewSize;
+    this._camera.bottom = -this._cameraViewSize;
 
     this._camera.updateProjectionMatrix();
     // this._camera.updateMatrix()

@@ -14,33 +14,21 @@ export class CreateBoxTool extends BaseTool {
   private box3d: CubeObject | null = null;
   private renderer: Renderer;
   private startPoint: Point2D | null = null;
-  private parentBus: EventEmitter;
   private sceneManager: SceneManager;
 
-  constructor(
-    input: InputEmitter,
-    renderer: Renderer,
-    eventBus: EventEmitter,
-    sceneManager: SceneManager,
-  ) {
+  constructor(input: InputEmitter, renderer: Renderer, sceneManager: SceneManager) {
     super();
     this.input = input;
     this.renderer = renderer;
-    this.parentBus = eventBus;
     this.sceneManager = sceneManager;
   }
 
-  public active(): void {
-    this.input.on(EventType.PointerDownEvent, this.onMouseDown);
-    this.enabled = true;
-  }
-  public deative(): void {
-    this.input.removeListener(EventType.PointerDownEvent, this.onMouseDown);
-    this.enabled = false;
-  }
-
-  onMouseDown = (point: Point2D, worldPosition: THREE.Vector3) => {
-    console.log('onMouseDown', point);
+  mouseDownHandle = (
+    point: Point2D,
+    worldPosition: THREE.Vector3,
+    event: PointerEvent & { stopHandleNext: boolean },
+  ) => {
+    event.stopHandleNext = true;
     if (!this.box3d) {
       this.startPoint = {
         x: worldPosition.x,
@@ -51,18 +39,20 @@ export class CreateBoxTool extends BaseTool {
         x: 0,
         y: 0,
         z: 0,
-        w: 0,
+        w: 1,
       });
       this.sceneManager.addAnnotationBox(this.box3d);
 
       this.renderer.render();
-
-      this.input.on(EventType.PointerUpEvent, this.onMouseUp);
-      this.input.on(EventType.PointerMoveEvent, this.onMouseMove);
     }
   };
 
-  onMouseMove = (point: Point2D, worldPosition: THREE.Vector3) => {
+  mouseMoveHandle = (
+    point: Point2D,
+    worldPosition: THREE.Vector3,
+    event: PointerEvent & { stopHandleNext: boolean },
+  ) => {
+    event.stopHandleNext = true;
     if (this.box3d) {
       this.box3d.updateMinMaxPoint(this.startPoint, worldPosition);
 
@@ -70,15 +60,20 @@ export class CreateBoxTool extends BaseTool {
     }
   };
 
-  onMouseUp = (point: Point2D) => {
+  mouseUpHandle = (
+    point: Point2D,
+    worldPosition: THREE.Vector3,
+    event: PointerEvent & { stopHandleNext: boolean },
+  ) => {
+    event.stopHandleNext = true;
     // save
     this.sceneManager.addAnnotationBox(this.box3d!);
 
     this.box3d = null;
     this.startPoint = null;
+  };
 
-    this.input.removeListener(EventType.PointerUpEvent, this.onMouseUp);
-    this.input.removeListener(EventType.PointerMoveEvent, this.onMouseMove);
-    this.parentBus.emit('deactive');
+  wheelHandle = () => {
+    return;
   };
 }

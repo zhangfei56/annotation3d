@@ -1,10 +1,12 @@
 import EventEmitter from 'eventemitter3';
+import { throttle } from 'lodash';
 import { KeyboardEvent } from 'react';
 import * as THREE from 'three';
 
 import Renderder from './Renderer';
 import SceneManager from './SceneManager';
 import CubeObject from './Shapes/CubeObject';
+
 export const EventType = {
   PointerDownEvent: 'PointerDownEvent',
   PointerUpEvent: 'PointerUpEvent',
@@ -25,7 +27,8 @@ export enum MouseLevel {
   AssistPoint,
 }
 
-const XY_PLANE = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const cameraNormal = new THREE.Vector3(0, 0, 1);
+const CROSS_PLANE = new THREE.Plane(cameraNormal, 0);
 export class InputEmitter extends EventEmitter {
   private canvas: HTMLCanvasElement;
   private camera: THREE.Camera;
@@ -54,8 +57,13 @@ export class InputEmitter extends EventEmitter {
     document.addEventListener('pointerdown', this.onPointerDown);
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('wheel', this.onMouseWheel, { passive: false });
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    });
     this.raycaster = new THREE.Raycaster();
-    this.raycaster.params.Line!.threshold = 0.02;
+    this.raycaster.params.Line!.threshold = 0.1;
 
     //
     // this.tools.push(new OrbitControlTool(this, renderer,  this.camera, canvas))
@@ -65,9 +73,11 @@ export class InputEmitter extends EventEmitter {
     this.unitCursorCoords.x = (event.offsetX / this.canvas.width) * 2 - 1;
     this.unitCursorCoords.y = -(event.offsetY / this.canvas.height) * 2 + 1;
 
+    this.camera.getWorldDirection(cameraNormal);
+    CROSS_PLANE.set(cameraNormal, 0);
     this.worldSpaceCursorCoords =
       this.raycaster.ray.intersectPlane(
-        XY_PLANE,
+        CROSS_PLANE,
         this.worldSpaceCursorCoords ?? new THREE.Vector3(),
       ) ?? undefined;
 
@@ -78,8 +88,7 @@ export class InputEmitter extends EventEmitter {
     return this.raycaster;
   }
 
-  private onPointerMove = (event: PointerEvent) => {
-    event.preventDefault();
+  private throttlePointMove = throttle((event: PointerEvent) => {
     this.setCurrentPosition(event);
 
     this.emit(
@@ -88,9 +97,16 @@ export class InputEmitter extends EventEmitter {
       this.worldSpaceCursorCoords,
       event,
     );
+  }, 50);
+
+  private onPointerMove = (event: PointerEvent) => {
+    event.preventDefault();
+    this.throttlePointMove(event);
   };
 
   private onPointerDown = (event: PointerEvent) => {
+    event.preventDefault();
+
     if (event.target == this.canvas) {
       event.preventDefault();
       this.setCurrentPosition(event);
@@ -107,7 +123,7 @@ export class InputEmitter extends EventEmitter {
       this.sceneManager.getMovedListers().forEach((listenerObj) => {
         const result = this.raycaster.intersectObject(listenerObj);
         if (result.length) {
-          this.emit(EventType.ObjectChooseEvent, listenerObj);
+          this.emit(EventType.ObjectChooseEvent, listenerObj, result);
         }
       });
     }
@@ -138,7 +154,8 @@ export class InputEmitter extends EventEmitter {
 
   private onMouseWheel = (event: WheelEvent) => {
     event.preventDefault();
-
+    // throttle(() => {
     this.emit(EventType.WheelEvent, event);
+    // }, 100);
   };
 }

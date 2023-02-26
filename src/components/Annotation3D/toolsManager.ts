@@ -11,12 +11,16 @@ import { EditBoxFace } from './tools/EditBoxFace';
 import { EditOneBoxTool } from './tools/EditOneBoxTool';
 import { OrbitControlTool } from './tools/OrbitControlTool';
 
+type ToolMouseHandleType =
+  | 'mouseDownHandle'
+  | 'mouseMoveHandle'
+  | 'mouseUpHandle'
+  | 'wheelHandle';
 export class ToolsManager {
   private input;
-  private defaultTool;
+  private viewTool;
 
   private tools: BaseTool[] = [];
-  private eventBus: EventEmitter;
   // The four arrow keys
   private keys = {
     LEFT: 'ArrowLeft',
@@ -33,39 +37,76 @@ export class ToolsManager {
     multiEditViews: EditBoxFace[],
   ) {
     this.input = input;
-    this.eventBus = new EventEmitter();
-    this.defaultTool = new OrbitControlTool(
+    this.viewTool = new OrbitControlTool(
       input,
       renderder,
       renderder.getCamera(),
       renderder.getDomElement(),
     );
-    this.defaultTool.active();
 
-    this.tools.push(this.defaultTool);
-    const createTool = new CreateBoxTool(input, renderder, this.eventBus, sceneManager);
+    // this.tools.push(this.viewTool);
+    const createTool = new CreateBoxTool(input, renderder, sceneManager);
     this.tools.push(createTool);
     this.editOneBoxTool = new EditOneBoxTool(
       input,
       renderder,
-      this.eventBus,
       sceneManager,
       multiEditViews,
     );
     this.tools.push(this.editOneBoxTool);
 
     this.input.addListener(EventType.KeyDownEvent, this.onKeyDown);
-    this.input.addListener(EventType.ObjectChooseEvent, this.onObjectChooseEvent);
+    this.input.on(EventType.PointerUpEvent, this.onMouseHandle('mouseUpHandle'));
+    this.input.on(EventType.PointerMoveEvent, this.onMouseHandle('mouseMoveHandle'));
+    this.input.on(EventType.PointerDownEvent, this.onMouseHandle('mouseDownHandle'));
+    this.input.on(EventType.WheelEvent, this.onWheelHandle);
 
-    this.eventBus.addListener('deactive', this.onDeactiveEvent);
+    this.input.addListener(EventType.ObjectChooseEvent, this.onObjectChooseEvent);
   }
 
   onKeyDown = (event: KeyboardEvent) => {
     const keyCode = event.code;
+    if (keyCode === 'Escape') {
+      this.tools.map((item) => (item.enabled = false));
+      return;
+    }
     const keyTool = this.tools.find((item) => item.activeKeyCode === keyCode);
     if (keyTool) {
       this.activeTool(keyCode, keyTool);
     }
+  };
+
+  onMouseHandle = (mouseHandleStr: ToolMouseHandleType) => {
+    return (
+      unitCoord: THREE.Vector2,
+      worldPosition: THREE.Vector3,
+      event: PointerEvent & { stopHandleNext: boolean },
+    ) => {
+      const activeTools = this.getActiveTools();
+      for (let i = activeTools.length - 1; i >= 0; i--) {
+        if (event.stopHandleNext) {
+          break;
+        }
+        const currentTool = activeTools[i];
+        currentTool[mouseHandleStr](unitCoord, worldPosition, event);
+      }
+    };
+  };
+
+  onWheelHandle = (event: WheelEvent & { stopHandleNext: boolean }) => {
+    const activeTools = this.getActiveTools();
+    for (let i = activeTools.length - 1; i >= 0; i--) {
+      if (event.stopHandleNext) {
+        break;
+      }
+      const currentTool = activeTools[i];
+      currentTool.wheelHandle(event);
+    }
+  };
+
+  getActiveTools: () => BaseTool[] = () => {
+    const activeTools = this.tools.filter((item) => item.enabled);
+    return [this.viewTool, ...activeTools];
   };
 
   activeTool = (keyCode: string, tool: BaseTool) => {
@@ -74,14 +115,17 @@ export class ToolsManager {
       if (keyCode === activeTool.activeKeyCode) {
         return;
       }
-      activeTool.deative();
+      activeTool.enabled = false;
     }
-    tool.active();
+    tool.enabled = true;
   };
 
-  onObjectChooseEvent = (clickedObject: BaseShape) => {
+  onObjectChooseEvent = (
+    clickedObject: BaseShape,
+    childThreeObjects: THREE.Object3D[],
+  ) => {
     if (
-      this.getActiveTool() == this.defaultTool &&
+      this.getActiveTool() == this.viewTool &&
       clickedObject instanceof CubeObject &&
       clickedObject.type === 'Annotation3DBox'
     ) {
@@ -90,20 +134,11 @@ export class ToolsManager {
     }
   };
 
-  onDeactiveEvent = () => {
-    const activeTool = this.tools.find((tool) => tool.enabled);
-    if (activeTool) {
-      activeTool.deative();
-    }
-    this.defaultTool.active();
-  };
-
   getActiveTool = () => {
     const activeTool = this.tools.find((tool) => tool.enabled);
     if (activeTool) {
       return activeTool;
     }
-    this.defaultTool.active();
-    return this.defaultTool;
+    return this.viewTool;
   };
 }

@@ -106,15 +106,22 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
   const colorAttribute = geometry.attributes.color;
 
   const colorConverter = getColorConverter(
+    // {
+    //   colorMode: 'colormap',
+    //   colorMap: 'turbo',
+    //   flatColor: '',
+    //   gradient: ['', ''],
+    //   explicitAlpha: 0,
+    // },
     {
-      colorMode: 'colormap',
+      colorMode: 'gradient',
       colorMap: 'turbo',
       flatColor: '',
-      gradient: ['', ''],
+      gradient: ['#40ffff', '#81b929eb'],
       explicitAlpha: 0,
     },
     0,
-    255,
+    40,
   );
 
   const view = new DataView(content.buffer, content.byteOffset, content.byteLength);

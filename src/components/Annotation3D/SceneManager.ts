@@ -44,6 +44,6 @@ export default class SceneManager {
   public generateShapeFromFrame() {}
 
   public getMovedListers() {
-    return [...this.annotationBoxes, ...this.helperShapes, ...this.pointCouldShapes];
+    return [...this.annotationBoxes, ...this.helperShapes];
   }
 }

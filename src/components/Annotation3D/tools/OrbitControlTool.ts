@@ -315,22 +315,8 @@ export class OrbitControlTool extends BaseTool {
       };
     })();
   }
-  public active(): void {
-    this.input.on(EventType.PointerDownEvent, this.onMouseDown);
-    this.input.on(EventType.PointerMoveEvent, this.onMouseMove);
-    this.input.on(EventType.PointerUpEvent, this.onPointerUp);
-    this.input.on(EventType.WheelEvent, this.onMouseWheel);
-    this.enabled = true;
-  }
-  public deative(): void {
-    this.input.removeListener(EventType.PointerDownEvent, this.onMouseDown);
-    this.input.removeListener(EventType.PointerMoveEvent, this.onMouseMove);
-    this.input.removeListener(EventType.PointerUpEvent, this.onPointerUp);
-    this.input.removeListener(EventType.WheelEvent, this.onMouseWheel);
-    this.enabled = false;
-  }
 
-  private onMouseDown = (_p1, _p2, event: PointerEvent) => {
+  public mouseDownHandle = (_p1, _p2, event: PointerEvent) => {
     let mouseAction;
 
     switch (event.button) {
@@ -399,7 +385,7 @@ export class OrbitControlTool extends BaseTool {
     }
   };
 
-  onMouseMove = (_p1, _p2, event: PointerEvent) => {
+  mouseMoveHandle = (_p1, _p2, event: PointerEvent) => {
     console.log('onMouseMove');
     switch (this.state) {
       case STATE.ROTATE:
@@ -425,7 +411,15 @@ export class OrbitControlTool extends BaseTool {
     }
   };
 
-  onMouseWheel = (event: WheelEvent) => {
+  public mouseUpHandle(
+    _unitCoord: THREE.Vector2,
+    _worldPosition: THREE.Vector3,
+    _event: PointerEvent,
+  ): void {
+    this.state = STATE.NONE;
+  }
+
+  wheelHandle = (event: WheelEvent) => {
     if (this.enabled === false || this.enableZoom === false || this.state !== STATE.NONE)
       return;
     this.handleMouseWheel(event);
@@ -631,9 +625,5 @@ export class OrbitControlTool extends BaseTool {
     }
 
     this.update();
-  };
-
-  onPointerUp = (event: PointerEvent) => {
-    this.state = STATE.NONE;
   };
 }
