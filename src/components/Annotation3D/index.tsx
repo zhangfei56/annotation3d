@@ -53,8 +53,8 @@ function Annotation3D(): JSX.Element {
       input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager);
 
       const multipleViews = [
-        // new EditBoxFace(leftEditCanvas!, renderer, 1, BoxFaceEnum.Left, sceneManager),
-        // new EditBoxFace(upEditCanvas!, renderer, 1, BoxFaceEnum.Up, sceneManager),
+        new EditBoxFace(leftEditCanvas!, renderer, 1, BoxFaceEnum.Left, sceneManager),
+        new EditBoxFace(upEditCanvas!, renderer, 1, BoxFaceEnum.Up, sceneManager),
         new EditBoxFace(frontEditCanvas!, renderer, 1, BoxFaceEnum.Front, sceneManager),
       ];
       new ToolsManager(input, renderer, sceneManager, multipleViews);

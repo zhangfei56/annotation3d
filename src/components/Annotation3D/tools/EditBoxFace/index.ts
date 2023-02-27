@@ -150,27 +150,6 @@ export class EditBoxFace {
     return [v1, v2];
   }
 
-  private updateHelperLine() {
-    const faceSides = this.getFaceLengthAndWidth();
-    const maxLineSize = Math.max(...faceSides);
-
-    const cameraY = faceSides[1] / (2 * maxLineSize);
-    const cameraX = faceSides[0] / (2 * maxLineSize);
-
-    this.helperLines.forEach((helperLine) => {
-      const helperConfig = HelperLineConfig[helperLine.direction];
-      const v1 = new THREE.Vector3(0, 0, -1);
-      const v2 = new THREE.Vector3(0, 0, -1);
-      v1.x = helperConfig.x === undefined ? 1 : helperConfig.x * cameraX;
-      v2.x = helperConfig.x === undefined ? -1 : helperConfig.x * cameraX;
-      v1.y = helperConfig.y === undefined ? 1 : helperConfig.y * cameraY;
-      v2.y = helperConfig.y === undefined ? -1 : helperConfig.y * cameraY;
-      v1.unproject(this._camera);
-      v2.unproject(this._camera);
-      helperLine.updatePoints([v1, v2]);
-    });
-  }
-
   private handleMouseDown = (
     unitCursorCoords: THREE.Vector2,
     worldPosition: THREE.Vector3,
@@ -181,13 +160,12 @@ export class EditBoxFace {
       .intersectObject(this._box!.getSideLines(), false);
     if (result.length > 0) {
       const firstLineResult = result[0];
-      const directionSide = this.getDirectionByIndex(firstLineResult.index);
+      const directionSide = this.getDirectionByIndex(firstLineResult.index ?? 0);
       if (['Up', 'Down'].includes(directionSide)) {
         document.body.style.cursor = 'row-resize';
       } else {
         document.body.style.cursor = 'col-resize';
       }
-      const boxSideLines = this._box!.getSideLines();
       const points = this.getHelperLinePoints(directionSide);
       this.clicked = true;
       this._tempHelperLine.direction = directionSide;
@@ -204,16 +182,18 @@ export class EditBoxFace {
   ) => {
     if (this.clicked) {
       const direction = this._tempHelperLine.direction;
-      const helperConfig = HelperLineConfig[direction];
       const cameraX = unitCursorCoords.x;
       const cameraY = unitCursorCoords.y;
 
-      const v1 = new THREE.Vector3(0, 0, -1);
-      const v2 = new THREE.Vector3(0, 0, -1);
-      v1.x = helperConfig.x === undefined ? 1 : cameraX;
-      v2.x = helperConfig.x === undefined ? -1 : cameraX;
-      v1.y = helperConfig.y === undefined ? 1 : cameraY;
-      v2.y = helperConfig.y === undefined ? -1 : cameraY;
+      const v1 = new THREE.Vector3(cameraX, cameraY, -1);
+      const v2 = new THREE.Vector3(cameraX, cameraY, -1);
+      if (['Up', 'Down'].includes(direction)) {
+        v1.x = -1;
+        v2.x = 1;
+      } else {
+        v1.y = -1;
+        v2.y = 1;
+      }
 
       v1.unproject(this._camera);
       v2.unproject(this._camera);
@@ -238,26 +218,6 @@ export class EditBoxFace {
     } else {
       document.body.style.cursor = '';
     }
-
-    // const helperLines = this.helperLines.map((line) => line.getLine());
-    // const intersects = this._input.getRaycaster().intersectObjects(helperLines);
-    // if (intersects.length > 0) {
-    //   intersects[0].object.visible = true;
-    //   const visibleLine = this.helperLines.find((item) => item.getLine().visible);
-    //   if (['Up', 'Down'].includes(visibleLine!.direction)) {
-    //     document.body.style.cursor = 'row-resize';
-    //   } else {
-    //     document.body.style.cursor = 'col-resize';
-    //   }
-    //   this._gl.render(this._mainRenderer.scene, this._camera);
-    // } else {
-    //   const visibleLines = this.helperLines.filter((line) => line.getLine().visible);
-    //   visibleLines.forEach((line) => {
-    //     line.getLine().visible = false;
-    //   });
-    //   document.body.style.cursor = '';
-    //   this._gl.render(this._mainRenderer.scene, this._camera);
-    // }
   };
 
   private handleMouseUp = (
@@ -270,47 +230,27 @@ export class EditBoxFace {
     }
     if (this.clicked) {
       const faceSides = this.getFaceLengthAndWidth();
-      const maxLineSize = Math.max(...faceSides);
       const direction = this._tempHelperLine.direction;
 
       let delta;
-      let moveDirection;
-      if (direction === 'Left') {
-        delta = -faceSides[0] / 2 - unitCursorCoords.x * this._cameraViewSize;
-        moveDirection = new Vector3(-1, 0, 0); // every face different
-      } else if (direction === 'Right') {
-        delta = -faceSides[0] / 2 + unitCursorCoords.x * this._cameraViewSize;
-        moveDirection = new Vector3(1, 0, 0);
+      const moveDirection = this.getMovingDirection(direction);
+
+      switch (direction) {
+        case 'Left':
+          delta = -faceSides[0] / 2 - unitCursorCoords.x * this._cameraViewSize;
+          break;
+        case 'Right':
+          delta = -faceSides[0] / 2 + unitCursorCoords.x * this._cameraViewSize;
+          break;
+        case 'Up':
+          delta = -faceSides[1] / 2 + unitCursorCoords.y * this._cameraViewSize;
+          break;
+        case 'Down':
+          delta = -faceSides[1] / 2 - unitCursorCoords.y * this._cameraViewSize;
+          break;
       }
 
-      debugger;
       this._box.scaleDistanceByDirection(moveDirection, delta);
-
-      // const helperConfig = HelperLineConfig[direction];
-
-      // const boxAttributes = this.getFaceAttributes();
-
-      // const changeHalf =
-      //   helperConfig.x == undefined
-      //     ? helperConfig.y! * unitCursorCoords.y * maxLineSize
-      //     : helperConfig.x! * unitCursorCoords.x * maxLineSize;
-
-      // const changeAttribute =
-      //   helperConfig.x == undefined ? boxAttributes[1] : boxAttributes[0];
-
-      // const attributeSize = changeHalf + this._box.scale[changeAttribute] / 2;
-
-      // const move = this.getMovingDirection(direction);
-
-      // const boxPosition = this.getBoxMovePosition(
-      //   move,
-      //   (changeHalf - this._box.scale[changeAttribute] / 2) / 2,
-      // );
-
-      // this._box.position.set(boxPosition.x, boxPosition.y, boxPosition.z);
-      // const updateScale = this._box.scale.clone();
-      // updateScale[changeAttribute] = attributeSize;
-      // this._box.changeSize(updateScale);
 
       this._tempHelperLine.getLine().visible = false;
 
@@ -326,62 +266,71 @@ export class EditBoxFace {
       case BoxFaceEnum.Front:
         indexArr = [0, 2, 4, 6];
         break;
+      case BoxFaceEnum.Up:
+        indexArr = [8, 18, 0, 16];
+        break;
+      case BoxFaceEnum.Left:
+        indexArr = [18, 10, 20, 2];
+        break;
       default:
+        indexArr = [0, 0, 0, 0];
         break;
     }
-    const positionIndex = indexArr?.indexOf(index);
-    const direction = ['Up', 'Left', 'Down', 'Right'][positionIndex];
+    const positionIndex = indexArr.indexOf(index);
+    const direction: HelperLinePosition = ['Up', 'Left', 'Down', 'Right'][
+      positionIndex
+    ] as HelperLinePosition;
     return direction;
   }
 
-  private getMovingDirection(direction: keyof typeof HelperLineConfig) {
-    let move = BoxFaceEnum.Up;
+  private getMovingDirection(direction: HelperLinePosition): THREE.Vector3 {
+    const move = new THREE.Vector3();
     switch (this._boxFace) {
       case BoxFaceEnum.Front:
         switch (direction) {
           case 'Up':
-            move = BoxFaceEnum.Up;
+            move.z = 1;
             break;
           case 'Down':
-            move = BoxFaceEnum.Down;
+            move.z = -1;
             break;
           case 'Left':
-            move = BoxFaceEnum.Left;
+            move.x = -1;
             break;
           case 'Right':
-            move = BoxFaceEnum.Right;
+            move.x = 1;
             break;
         }
         break;
       case BoxFaceEnum.Up:
         switch (direction) {
           case 'Up':
-            move = BoxFaceEnum.Back;
+            move.y = 1;
             break;
           case 'Down':
-            move = BoxFaceEnum.Front;
+            move.y = -1;
             break;
           case 'Left':
-            move = BoxFaceEnum.Left;
+            move.x = -1;
             break;
           case 'Right':
-            move = BoxFaceEnum.Right;
+            move.x = 1;
             break;
         }
         break;
       case BoxFaceEnum.Left:
         switch (direction) {
           case 'Up':
-            move = BoxFaceEnum.Up;
+            move.z = 1;
             break;
           case 'Down':
-            move = BoxFaceEnum.Down;
+            move.z = -1;
             break;
           case 'Left':
-            move = BoxFaceEnum.Back;
+            move.y = 1;
             break;
           case 'Right':
-            move = BoxFaceEnum.Front;
+            move.y = -1;
             break;
         }
         break;
@@ -451,6 +400,7 @@ export class EditBoxFace {
     switch (this._boxFace) {
       case BoxFaceEnum.Left:
         this._camera.rotateY(-Math.PI / 2);
+        this._camera.rotateZ(-Math.PI / 2);
         break;
       case BoxFaceEnum.Up:
         // this._camera.rotateX(-Math.PI / 2);
@@ -471,8 +421,6 @@ export class EditBoxFace {
     // this._camera.updateMatrix()
 
     this._camera.updateMatrixWorld();
-
-    this.updateHelperLine();
 
     this._gl.render(this._mainRenderer.scene, this._camera);
     this._mainRenderer.render();

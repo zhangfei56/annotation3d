@@ -81,8 +81,6 @@ class CubeObject extends Object3D implements BaseShape {
     this.position.set(position.x, position.y, position.z);
     this.quaternion.set(orientation.x, orientation.y, orientation.z, orientation.w);
     this.scale.set(scale.x, scale.y, scale.z);
-
-    // this.changeSize(scale);
   }
 
   public changeSize(scale: { x: number; y: number; z: number }): void {
@@ -97,11 +95,12 @@ class CubeObject extends Object3D implements BaseShape {
 
   // 向某个方向延展
   public scaleDistanceByDirection(direction: Vector3, delta: number): void {
-    this.updateMatrix();
-    this.updateMatrixWorld();
-    const deltaDirection = direction.clone().multiplyScalar(delta / 2);
-    const temp = deltaDirection.clone().applyMatrix4(this.matrixWorld).add(this.position);
-    this.position.set(temp.x, temp.y, temp.z);
+    this.translateOnAxis(direction, delta / 2);
+
+    const deltaDirection = direction
+      .clone()
+      .set(Math.abs(direction.x), Math.abs(direction.y), Math.abs(direction.z))
+      .multiplyScalar(delta);
     this.scale.add(deltaDirection);
     this.updateMatrix();
   }
