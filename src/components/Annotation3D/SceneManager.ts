@@ -46,4 +46,8 @@ export default class SceneManager {
   public getMovedListers() {
     return [...this.annotationBoxes, ...this.helperShapes];
   }
+
+  public getAnnotationBoxes() {
+    return this.annotationBoxes;
+  }
 }

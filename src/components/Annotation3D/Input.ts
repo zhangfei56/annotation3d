@@ -6,14 +6,14 @@ import * as THREE from 'three';
 import Renderder from './Renderer';
 import SceneManager from './SceneManager';
 import CubeObject from './Shapes/CubeObject';
+import { ObjectBusEvent } from './types/Messages';
 
-export const EventType = {
+export const MouseAndKeyEvent = {
   PointerDownEvent: 'PointerDownEvent',
   PointerUpEvent: 'PointerUpEvent',
   PointerMoveEvent: 'PointerMoveEvent',
   WheelEvent: 'WheelEvent',
   KeyDownEvent: 'KeyDownEvent',
-  ObjectChooseEvent: 'ObjectChooseEvent',
 };
 
 export type Point2D = {
@@ -42,13 +42,16 @@ export class InputEmitter extends EventEmitter {
   private lastDownTarget: EventTarget | null | undefined;
 
   private sceneManager: SceneManager;
+  private _eventBus: EventEmitter<ObjectBusEvent>;
 
   public constructor(
     canvas: HTMLCanvasElement,
     camera: THREE.Camera,
     sceneManager: SceneManager,
+    eventBus: EventEmitter<ObjectBusEvent>,
   ) {
     super();
+    this._eventBus = eventBus;
     this.canvas = canvas;
     this.camera = camera;
     this.sceneManager = sceneManager;
@@ -92,7 +95,7 @@ export class InputEmitter extends EventEmitter {
     this.setCurrentPosition(event);
 
     this.emit(
-      EventType.PointerMoveEvent,
+      MouseAndKeyEvent.PointerMoveEvent,
       this.unitCursorCoords,
       this.worldSpaceCursorCoords,
       event,
@@ -112,7 +115,7 @@ export class InputEmitter extends EventEmitter {
       this.setCurrentPosition(event);
 
       this.emit(
-        EventType.PointerDownEvent,
+        MouseAndKeyEvent.PointerDownEvent,
         this.unitCursorCoords,
         this.worldSpaceCursorCoords,
         event,
@@ -120,10 +123,10 @@ export class InputEmitter extends EventEmitter {
 
       this.canvas.setPointerCapture(event.pointerId);
       this.canvas.addEventListener('pointerup', this.onPointerUp);
-      this.sceneManager.getMovedListers().forEach((listenerObj) => {
+      this.sceneManager.getAnnotationBoxes().forEach((listenerObj) => {
         const result = this.raycaster.intersectObject(listenerObj);
         if (result.length) {
-          this.emit(EventType.ObjectChooseEvent, listenerObj, result);
+          this._eventBus.emit(ObjectBusEvent.ClickedBox3D, listenerObj, result);
         }
       });
     }
@@ -137,7 +140,7 @@ export class InputEmitter extends EventEmitter {
     this.canvas.releasePointerCapture(event.pointerId);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
     this.emit(
-      EventType.PointerUpEvent,
+      MouseAndKeyEvent.PointerUpEvent,
       this.unitCursorCoords,
       this.worldSpaceCursorCoords,
       event,
@@ -148,14 +151,14 @@ export class InputEmitter extends EventEmitter {
     if (this.lastDownTarget == this.canvas) {
       event.preventDefault();
 
-      this.emit(EventType.KeyDownEvent, event);
+      this.emit(MouseAndKeyEvent.KeyDownEvent, event);
     }
   };
 
   private onMouseWheel = (event: WheelEvent) => {
     event.preventDefault();
     // throttle(() => {
-    this.emit(EventType.WheelEvent, event);
+    this.emit(MouseAndKeyEvent.WheelEvent, event);
     // }, 100);
   };
 }

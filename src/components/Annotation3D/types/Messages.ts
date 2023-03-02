@@ -1,5 +1,10 @@
 export type AnnotationType = 'box3d' | 'box2d';
 
+export enum ObjectBusEvent {
+  RenderAll = 'RenderAll',
+  ClickedBox3D = 'ClickedBox3D',
+}
+
 export interface Point3D {
   x: number;
   y: number;

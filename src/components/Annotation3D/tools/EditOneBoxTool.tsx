@@ -1,13 +1,14 @@
 import EventEmitter from 'eventemitter3';
+import * as ReactDOM from 'react-dom/client';
 import { ArrowHelper, Matrix4, Vector2, Vector3 } from 'three';
 
-import { EventType, InputEmitter, MouseLevel, Point2D } from '../Input';
-import Renderer from '../Renderer';
+import { InputEmitter, MouseAndKeyEvent, MouseLevel, Point2D } from '../Input';
 import SceneManager from '../SceneManager';
-import { BaseShape } from '../Shapes/BaseShape';
 import CubeObject from '../Shapes/CubeObject';
+import { ObjectBusEvent } from '../types/Messages';
 import BaseTool from './BaseTool';
-import { EditBoxFace } from './EditBoxFace';
+import { BoxFaceEnum, EditBoxFace } from './EditBoxFace/EditBoxFace';
+import BoxFaceContainer from './EditBoxFace/index';
 
 export class EditOneBoxTool extends BaseTool {
   // 非快捷键触发
@@ -15,7 +16,7 @@ export class EditOneBoxTool extends BaseTool {
 
   private input: InputEmitter;
   private _cubeObject: CubeObject | null = null;
-  private renderer: Renderer;
+  private _eventBus: EventEmitter<ObjectBusEvent>;
   private sceneManager: SceneManager;
   private _multiEditViews: EditBoxFace[];
 
@@ -27,20 +28,47 @@ export class EditOneBoxTool extends BaseTool {
 
   constructor(
     input: InputEmitter,
-    renderer: Renderer,
+    eventBus: EventEmitter<ObjectBusEvent>,
     sceneManager: SceneManager,
-    multiEditViews: EditBoxFace[],
+    // multiEditViews: EditBoxFace[],
   ) {
     super();
     this.input = input;
-    this.renderer = renderer;
+    this._eventBus = eventBus;
     this.sceneManager = sceneManager;
-    this._multiEditViews = multiEditViews;
+    this._multiEditViews = [];
+    this.createThreeView();
+  }
+
+  private createThreeView() {
+    const containerDom = document.getElementById('three-view-id');
+    if (containerDom) {
+      const combine = (
+        <>
+          {/* <BoxFaceContainer
+            eventBus={this._eventBus}
+            boxFace={BoxFaceEnum.Left}
+            sceneManager={this.sceneManager}
+          ></BoxFaceContainer> */}
+          {/* <BoxFaceContainer
+            eventBus={this._eventBus}
+            boxFace={BoxFaceEnum.Up}
+            sceneManager={this.sceneManager}
+          ></BoxFaceContainer> */}
+          <BoxFaceContainer
+            eventBus={this._eventBus}
+            boxFace={BoxFaceEnum.Front}
+            sceneManager={this.sceneManager}
+          ></BoxFaceContainer>
+        </>
+      );
+      const r = ReactDOM.createRoot(containerDom);
+      r.render(combine);
+    }
   }
 
   public setSelected(_box: CubeObject): void {
     this._cubeObject = _box;
-    this._multiEditViews.forEach((view) => view.setBox(_box));
   }
 
   mouseDownHandle = (point: Point2D, worldPosition: THREE.Vector3) => {
@@ -59,15 +87,9 @@ export class EditOneBoxTool extends BaseTool {
         this._startedClickedLocalPosition = worldPositionTemp.applyMatrix4(
           this._startedWorldToLocalMatrix,
         );
-        console.log('_startedClickedLocalPosition', this._startedClickedLocalPosition);
-        console.log('worldPosition', worldPosition);
       }
     }
   };
-
-  // onObjectClicked = (_clickedObject: BaseShape, childThreeObjects: THREE.Object3D[]) => {
-  //   debugger;
-  // };
 
   mouseMoveHandle = (
     point: Point2D,
@@ -103,7 +125,7 @@ export class EditOneBoxTool extends BaseTool {
 
         this._cubeObject.position.set(temp.x, temp.y, temp.z);
 
-        this.renderer.render();
+        // this._eventBus.on();
       }
 
       const axesArr = this._cubeObject.axesArr;

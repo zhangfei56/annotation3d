@@ -1,16 +1,24 @@
+import { EventEmitter } from 'eventemitter3';
 import * as THREE from 'three';
 import { Vector3 } from 'three';
 
 import { OrbitControls } from './ThreeDee/OrbitControls';
+import { ObjectBusEvent } from './types/Messages';
 export default class Renderer {
   private readonly canvas: HTMLCanvasElement;
   public readonly gl: THREE.WebGLRenderer;
   public readonly scene: THREE.Scene;
   private camera;
+  private _eventBus: EventEmitter<ObjectBusEvent>;
 
-  public constructor(canvas: HTMLCanvasElement, scene: THREE.Scene) {
+  public constructor(
+    canvas: HTMLCanvasElement,
+    scene: THREE.Scene,
+    eventBus: EventEmitter<ObjectBusEvent>,
+  ) {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
     this.canvas = canvas;
+    this._eventBus = eventBus;
     this.gl = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
@@ -46,6 +54,8 @@ export default class Renderer {
     // gl2.render(this.scene, camera2)
 
     // document.body.appendChild( gl2.domElement );
+
+    this._eventBus.on(ObjectBusEvent.RenderAll, this.render.bind(this));
   }
 
   public render() {

@@ -1,15 +1,16 @@
 import EventEmitter from 'eventemitter3';
 
-import { EventType, InputEmitter } from './Input';
+import { InputEmitter, MouseAndKeyEvent } from './Input';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
 import CubeObject from './Shapes/CubeObject';
 import BaseTool from './tools/BaseTool';
 import { CreateBoxTool } from './tools/CreateBoxTool';
-import { EditBoxFace } from './tools/EditBoxFace';
+import { EditBoxFace } from './tools/EditBoxFace/EditBoxFace';
 import { EditOneBoxTool } from './tools/EditOneBoxTool';
 import { OrbitControlTool } from './tools/OrbitControlTool';
+import { ObjectBusEvent } from './types/Messages';
 
 type ToolMouseHandleType =
   | 'mouseDownHandle'
@@ -29,13 +30,16 @@ export class ToolsManager {
     BOTTOM: 'ArrowDown',
   };
   private editOneBoxTool;
+  private _eventBus: EventEmitter<ObjectBusEvent>;
 
   constructor(
     input: InputEmitter,
     renderder: Renderer,
     sceneManager: SceneManager,
-    multiEditViews: EditBoxFace[],
+    // multiEditViews: EditBoxFace[],
+    eventBus: EventEmitter<ObjectBusEvent>,
   ) {
+    this._eventBus = eventBus;
     this.input = input;
     this.viewTool = new OrbitControlTool(
       input,
@@ -44,24 +48,29 @@ export class ToolsManager {
       renderder.getDomElement(),
     );
 
-    // this.tools.push(this.viewTool);
     const createTool = new CreateBoxTool(input, renderder, sceneManager);
     this.tools.push(createTool);
     this.editOneBoxTool = new EditOneBoxTool(
       input,
-      renderder,
+      eventBus,
       sceneManager,
-      multiEditViews,
+      // multiEditViews,
     );
     this.tools.push(this.editOneBoxTool);
 
-    this.input.addListener(EventType.KeyDownEvent, this.onKeyDown);
-    this.input.on(EventType.PointerUpEvent, this.onMouseHandle('mouseUpHandle'));
-    this.input.on(EventType.PointerMoveEvent, this.onMouseHandle('mouseMoveHandle'));
-    this.input.on(EventType.PointerDownEvent, this.onMouseHandle('mouseDownHandle'));
-    this.input.on(EventType.WheelEvent, this.onWheelHandle);
+    this.input.addListener(MouseAndKeyEvent.KeyDownEvent, this.onKeyDown);
+    this.input.on(MouseAndKeyEvent.PointerUpEvent, this.onMouseHandle('mouseUpHandle'));
+    this.input.on(
+      MouseAndKeyEvent.PointerMoveEvent,
+      this.onMouseHandle('mouseMoveHandle'),
+    );
+    this.input.on(
+      MouseAndKeyEvent.PointerDownEvent,
+      this.onMouseHandle('mouseDownHandle'),
+    );
+    this.input.on(MouseAndKeyEvent.WheelEvent, this.onWheelHandle);
 
-    this.input.addListener(EventType.ObjectChooseEvent, this.onObjectChooseEvent);
+    this._eventBus.on(ObjectBusEvent.ClickedBox3D, this.onObjectChooseEvent);
   }
 
   onKeyDown = (event: KeyboardEvent) => {
@@ -121,14 +130,10 @@ export class ToolsManager {
   };
 
   onObjectChooseEvent = (
-    clickedObject: BaseShape,
+    clickedObject: CubeObject,
     childThreeObjects: THREE.Object3D[],
   ) => {
-    if (
-      this.getActiveTool() == this.viewTool &&
-      clickedObject instanceof CubeObject &&
-      clickedObject.type === 'Annotation3DBox'
-    ) {
+    if (this.getActiveTool() == this.viewTool) {
       this.activeTool(this.editOneBoxTool.activeKeyCode, this.editOneBoxTool);
       this.editOneBoxTool.setSelected(clickedObject);
     }

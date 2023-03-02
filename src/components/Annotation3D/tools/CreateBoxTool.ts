@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import { Vector3 } from 'three';
 
-import { EventType, InputEmitter, MouseLevel, Point2D } from '../Input';
+import { InputEmitter, MouseAndKeyEvent, MouseLevel, Point2D } from '../Input';
 import Renderer from '../Renderer';
 import SceneManager from '../SceneManager';
 import CubeObject from '../Shapes/CubeObject';

@@ -9,7 +9,6 @@ import {
   Object3D,
   Vector3,
 } from 'three';
-import { generateUUID } from 'three/src/math/MathUtils';
 
 import Renderer from '../Renderer';
 import CubeLines from '../ThreeDee/CubeLines';
@@ -20,14 +19,19 @@ import { BaseShape } from './BaseShape';
 
 const ScaleUnit = new THREE.Vector3(1, 1, 1);
 const ZeroVector = new THREE.Vector3(0, 0, 0);
-const XUnit = new THREE.Vector3(1, 0, 0);
-const YUnit = new THREE.Vector3(0, 1, 0);
-const ZUnit = new THREE.Vector3(0, 0, 1);
+export const XUnit = new THREE.Vector3(1, 0, 0);
+export const NegativeXUnit = new THREE.Vector3(-1, 0, 0);
+export const YUnit = new THREE.Vector3(0, 1, 0);
+export const NegativeYUnit = new THREE.Vector3(0, -1, 0);
+export const ZUnit = new THREE.Vector3(0, 0, 1);
 const XNegativeUnit = new THREE.Vector3(-1, 0, 0);
 const UnitQua = new THREE.Quaternion();
 const ZeroBox3 = new THREE.Box3().setFromCenterAndSize(ZeroVector, ScaleUnit);
 
-const XNegativeQuat = new THREE.Quaternion().setFromUnitVectors(XUnit, XNegativeUnit);
+const XNegativeQuat = new THREE.Quaternion().setFromAxisAngle(
+  new THREE.Vector3(0, 0, 1),
+  Math.PI,
+);
 
 class CubeObject extends Object3D implements BaseShape {
   private _color: number;
@@ -55,7 +59,7 @@ class CubeObject extends Object3D implements BaseShape {
     this._color = color;
 
     // this._box.setFromObject(this);
-    this._lines = new CubeLines(ZeroBox3, color);
+    this._lines = new CubeLines(color);
     this.add(this._lines);
     this.axesArr = [];
 
@@ -105,6 +109,10 @@ class CubeObject extends Object3D implements BaseShape {
     this.updateMatrix();
   }
 
+  public rotateOnAxis2(axis: Vector3, angle: number): void {
+    this.rotateOnAxis(axis, angle);
+  }
+
   public updateMinMaxPoint(start: Point3D, end: Point3D) {
     const positionX = (end.x + start.x) / 2;
     const positionY = (end.y + start.y) / 2;
@@ -123,6 +131,10 @@ class CubeObject extends Object3D implements BaseShape {
 
   public getSideLines() {
     return this._lines;
+  }
+
+  public getSurface() {
+    return this.surface;
   }
 
   public dispose(): void {

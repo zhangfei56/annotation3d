@@ -1,5 +1,6 @@
 import { VideoCameraAddOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
+import EventEmitter from 'eventemitter3';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMountedState } from 'react-use';
 import * as THREE from 'three';
@@ -8,31 +9,29 @@ import { CameraHelper, Vector2 } from 'three';
 import imageUrl from '../../assets/11.png';
 import MultiProvider from '../MultiProvider';
 import ClipContext from './context/ClipContext';
-import { EventType, InputEmitter } from './Input';
+import { InputEmitter, MouseAndKeyEvent } from './Input';
 import { loadPcd } from './loadPcd';
 import { ClipContextProvider } from './providers/ClipContextProvider';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
-import CubeObject from './Shapes/CubeObject';
 import Sidebar, { SidebarItem } from './Sidebar';
 import { CameraSide } from './Sidebar/CameraSide';
 import { VertexNormalsHelper } from './ThreeDee/VertexNormalsHelper';
 import { CreateBoxTool } from './tools/CreateBoxTool';
-import { BoxFaceEnum, EditBoxFace } from './tools/EditBoxFace';
 import { ToolsManager } from './toolsManager';
+import { ObjectBusEvent } from './types/Messages';
 
 function Annotation3D(): JSX.Element {
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const [leftEditCanvas, setLeftEditCanvas] = useState<HTMLCanvasElement | null>(null);
-  const [upEditCanvas, setUpEditCanvas] = useState<HTMLCanvasElement | null>(null);
-  const [frontEditCanvas, setFrontEditCanvas] = useState<HTMLCanvasElement | null>(null);
+
   const sceneManager = useMemo(() => {
     return new SceneManager();
   }, []);
+  const eventBus = useMemo(() => new EventEmitter<ObjectBusEvent>(), []);
 
   const renderer = useMemo(() => {
     if (canvas) {
-      return new Renderer(canvas, sceneManager.scene);
+      return new Renderer(canvas, sceneManager.scene, eventBus);
     }
     return null;
   }, [canvas]);
@@ -42,29 +41,17 @@ function Annotation3D(): JSX.Element {
   let isInitEdit = false;
 
   useEffect(() => {
-    if (
-      !isInitEdit &&
-      renderer &&
-      canvas &&
-      leftEditCanvas &&
-      upEditCanvas &&
-      frontEditCanvas
-    ) {
-      input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager);
+    if (!isInitEdit && renderer && canvas) {
+      input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager, eventBus);
 
-      const multipleViews = [
-        new EditBoxFace(leftEditCanvas!, renderer, 1, BoxFaceEnum.Left, sceneManager),
-        new EditBoxFace(upEditCanvas!, renderer, 1, BoxFaceEnum.Up, sceneManager),
-        new EditBoxFace(frontEditCanvas!, renderer, 1, BoxFaceEnum.Front, sceneManager),
-      ];
-      new ToolsManager(input, renderer, sceneManager, multipleViews);
+      new ToolsManager(input, renderer, sceneManager, eventBus);
       loadPcd(renderer, sceneManager);
       //
       renderer.render();
 
       isInitEdit = true;
     }
-  }, [isInitEdit, renderer, canvas, leftEditCanvas, upEditCanvas, frontEditCanvas]);
+  }, [isInitEdit, renderer, canvas]);
 
   const CameraSidebarItem = useMemo(() => {
     return function CameraSidebarItemImpl() {
@@ -96,8 +83,8 @@ function Annotation3D(): JSX.Element {
               height={window.innerHeight / 2}
             ></canvas>
           </Col>
-          <Col>
-            <Row>
+          <Col id="three-view-id">
+            {/* <Row>
               <canvas
                 ref={setLeftEditCanvas}
                 width={editToolBound.width}
@@ -117,7 +104,7 @@ function Annotation3D(): JSX.Element {
                 width={editToolBound.width}
                 height={editToolBound.height}
               ></canvas>
-            </Row>
+            </Row> */}
           </Col>
         </Row>
 

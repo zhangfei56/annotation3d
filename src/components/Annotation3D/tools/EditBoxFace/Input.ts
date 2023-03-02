@@ -1,7 +1,7 @@
 import EventEmitter from 'eventemitter3';
 import * as THREE from 'three';
 
-export const EventType = {
+export const MouseEvent = {
   MouseDownEvent: 'MouseDownEvent',
   MouseUpEvent: 'MouseUpEvent',
   MouseMoveEvent: 'MouseMoveEvent',
@@ -75,13 +75,23 @@ export class InputEmitter extends EventEmitter {
 
     this.setCurrentPosition(event);
 
-    this.emit(EventType.MouseMoveEvent, this.unitCursorCoords, this.worldPosition, event);
+    this.emit(
+      MouseEvent.MouseMoveEvent,
+      this.unitCursorCoords,
+      this.worldPosition,
+      event,
+    );
   };
 
   private onPointerDown = (event: PointerEvent) => {
     this.setCurrentPosition(event);
 
-    this.emit(EventType.MouseDownEvent, this.unitCursorCoords, this.worldPosition, event);
+    this.emit(
+      MouseEvent.MouseDownEvent,
+      this.unitCursorCoords,
+      this.worldPosition,
+      event,
+    );
 
     this.canvas.setPointerCapture(event.pointerId);
     this.canvas.addEventListener('pointerup', this.onPointerUp);
@@ -91,6 +101,6 @@ export class InputEmitter extends EventEmitter {
     this.setCurrentPosition(event);
     this.canvas.releasePointerCapture(event.pointerId);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
-    this.emit(EventType.MouseUpEvent, this.unitCursorCoords, this.worldPosition, event);
+    this.emit(MouseEvent.MouseUpEvent, this.unitCursorCoords, this.worldPosition, event);
   };
 }
