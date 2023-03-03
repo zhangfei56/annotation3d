@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import * as THREE from 'three';
-import { CameraHelper, Vector2, Vector3 } from 'three';
+import { CameraHelper, Matrix3, Matrix4, Quaternion, Vector2, Vector3 } from 'three';
 
 import SceneManager from '../../SceneManager';
 import CubeObject, { NegativeXUnit, NegativeYUnit, ZUnit } from '../../Shapes/CubeObject';
@@ -8,14 +8,60 @@ import { ObjectBusEvent } from '../../types/Messages';
 import { DashedHelperLine } from './DashedHelperLine';
 import { InputEmitter, MouseEvent, Point2D } from './Input';
 
+/**
+ * Left:
+ *           z
+ *          /\
+ *           |
+ *           |
+ *           |
+ *  y<-------0
+ *
+ *
+ * Front:
+ *
+ *    z
+ *   /\
+ *    |
+ *    |
+ *    |
+ *    0--------> x
+ *
+ * Up:
+ *   y
+ *   /\
+ *    |
+ *    |
+ *    |
+ *    0--------> x
+ *
+ */
+
 export enum BoxFaceEnum {
-  Right, // 0 4 7 3
+  Right,
   Left,
   Back,
-  Front, // 1 0 3 2
-  Up, // 0 1 5 4
+  Front,
+  Up,
   Down,
 }
+
+const FaceToCameraMap = {
+  [BoxFaceEnum.Left]: {
+    x: new Vector3(0, -1, 0),
+    y: new Vector3(0, 0, 1),
+  },
+  [BoxFaceEnum.Up]: {
+    x: new Vector3(1, 0, 0),
+    y: new Vector3(0, 1, 0),
+  },
+  [BoxFaceEnum.Front]: {
+    x: new Vector3(1, 0, 0),
+    y: new Vector3(0, 0, 1),
+  },
+};
+export type AvailableFace = keyof typeof FaceToCameraMap;
+//  BoxFaceEnum.Left | BoxFaceEnum.Up | BoxFaceEnum.Front;
 
 type HelperLinePosition = 'Up' | 'Down' | 'Left' | 'Right';
 
@@ -38,7 +84,7 @@ export class EditBoxFace {
   private _annotation3DObject?: CubeObject;
   private _level: number;
   private _camera: THREE.OrthographicCamera;
-  private _boxFace: BoxFaceEnum;
+  private _boxFace: AvailableFace;
   private _canvas: HTMLCanvasElement;
   private _gl: THREE.WebGLRenderer;
   private _input: InputEmitter;
@@ -51,11 +97,13 @@ export class EditBoxFace {
   private _mousePrepareAction: MouseAction;
   private _startRotateAngle = 0;
 
+  private _cameraRotate: Quaternion;
+
   constructor(
     canvas: HTMLCanvasElement,
     eventBus: EventEmitter<ObjectBusEvent>,
     level: number,
-    boxFace: BoxFaceEnum,
+    boxFace: AvailableFace,
     sceneManager: SceneManager,
   ) {
     this._level = level;
@@ -88,6 +136,8 @@ export class EditBoxFace {
     this._tempHelperLine.getLine().visible = false;
     this._sceneManager.addHelperObject(this._tempHelperLine.getLine());
 
+    this._cameraRotate = this.calculateCameraRotate(this._boxFace);
+
     this._gl = new THREE.WebGLRenderer({
       canvas: this._canvas,
       alpha: true,
@@ -99,6 +149,26 @@ export class EditBoxFace {
     this._input.addListener(MouseEvent.MouseMoveEvent, this.handleMouseMove);
     this._eventBus.on(ObjectBusEvent.ClickedBox3D, this.setBox);
     this._eventBus.on(ObjectBusEvent.RenderAll, this.render);
+  }
+
+  private calculateCameraRotate(boxFace: AvailableFace): Quaternion {
+    const cameraAxes = FaceToCameraMap[boxFace];
+    const z = new Vector3().copy(cameraAxes.x).cross(cameraAxes.y);
+    const cameraRotateMatrix4 = new Matrix4();
+    cameraRotateMatrix4.setFromMatrix3(
+      new Matrix3().set(
+        cameraAxes.x.x,
+        cameraAxes.y.x,
+        z.x,
+        cameraAxes.x.y,
+        cameraAxes.y.y,
+        z.y,
+        cameraAxes.x.z,
+        cameraAxes.y.z,
+        z.z,
+      ),
+    );
+    return new Quaternion().setFromRotationMatrix(cameraRotateMatrix4);
   }
 
   private setBox = (box: CubeObject): void => {
@@ -336,70 +406,28 @@ export class EditBoxFace {
   }
 
   private getMovingDirection(direction: HelperLinePosition): THREE.Vector3 {
-    const move = new THREE.Vector3();
-    switch (this._boxFace) {
-      case BoxFaceEnum.Front:
-        switch (direction) {
-          case 'Up':
-            move.z = 1;
-            break;
-          case 'Down':
-            move.z = -1;
-            break;
-          case 'Left':
-            move.x = -1;
-            break;
-          case 'Right':
-            move.x = 1;
-            break;
-        }
-        break;
-      case BoxFaceEnum.Up:
-        switch (direction) {
-          case 'Up':
-            move.y = 1;
-            break;
-          case 'Down':
-            move.y = -1;
-            break;
-          case 'Left':
-            move.x = -1;
-            break;
-          case 'Right':
-            move.x = 1;
-            break;
-        }
-        break;
-      case BoxFaceEnum.Left:
-        switch (direction) {
-          case 'Up':
-            move.z = 1;
-            break;
-          case 'Down':
-            move.z = -1;
-            break;
-          case 'Left':
-            move.y = 1;
-            break;
-          case 'Right':
-            move.y = -1;
-            break;
-        }
-        break;
+    const cameraRotate = FaceToCameraMap[this._boxFace];
+    let result;
+    if (['Up', 'Down'].includes(direction)) {
+      result = cameraRotate.y.clone();
+    } else {
+      result = cameraRotate.x.clone();
     }
-
-    return move;
+    if (['Down', 'Left'].includes(direction)) {
+      result.negate();
+    }
+    return result;
   }
 
   private getFaceAttributes(): xyz[] {
     let result: xyz[] = ['x', 'z'];
     switch (this._boxFace) {
       case BoxFaceEnum.Left:
-      case BoxFaceEnum.Right:
+        // case BoxFaceEnum.Right:
         result = ['y', 'z'];
         break;
       case BoxFaceEnum.Up:
-      case BoxFaceEnum.Down:
+        // case BoxFaceEnum.Down:
         result = ['x', 'y'];
         break;
       default:
@@ -442,21 +470,10 @@ export class EditBoxFace {
   }
 
   private recalculateRotation() {
-    this._camera.setRotationFromQuaternion(this._annotation3DObject!.quaternion);
-    switch (this._boxFace) {
-      case BoxFaceEnum.Left:
-        this._camera.rotateY(-Math.PI / 2);
-        this._camera.rotateZ(-Math.PI / 2);
-        break;
-      case BoxFaceEnum.Up:
-        // this._camera.rotateX(-Math.PI / 2);
-        break;
-      case BoxFaceEnum.Front:
-        // this._camera.rotateY(Math.PI);
-        this._camera.rotateX(Math.PI / 2);
-        break;
-      default:
-    }
+    const objQua = this._annotation3DObject!.quaternion;
+    const cameraRotate = objQua.clone().multiply(this._cameraRotate);
+
+    this._camera.setRotationFromQuaternion(cameraRotate);
 
     this._camera.left = -this._cameraViewSize;
     this._camera.right = this._cameraViewSize;

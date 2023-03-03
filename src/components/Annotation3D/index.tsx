@@ -16,8 +16,6 @@ import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import Sidebar, { SidebarItem } from './Sidebar';
 import { CameraSide } from './Sidebar/CameraSide';
-import { VertexNormalsHelper } from './ThreeDee/VertexNormalsHelper';
-import { CreateBoxTool } from './tools/CreateBoxTool';
 import { ToolsManager } from './toolsManager';
 import { ObjectBusEvent } from './types/Messages';
 
@@ -66,11 +64,6 @@ function Annotation3D(): JSX.Element {
       component: CameraSidebarItem,
     },
   ];
-
-  const editToolBound = {
-    height: 100,
-    width: 100,
-  };
 
   const Workspace = (
     <div>

@@ -45,21 +45,21 @@ export class EditOneBoxTool extends BaseTool {
     if (containerDom) {
       const combine = (
         <>
-          {/* <BoxFaceContainer
+          <BoxFaceContainer
             eventBus={this._eventBus}
             boxFace={BoxFaceEnum.Left}
             sceneManager={this.sceneManager}
-          ></BoxFaceContainer> */}
+          ></BoxFaceContainer>
           {/* <BoxFaceContainer
             eventBus={this._eventBus}
             boxFace={BoxFaceEnum.Up}
             sceneManager={this.sceneManager}
           ></BoxFaceContainer> */}
-          <BoxFaceContainer
+          {/* <BoxFaceContainer
             eventBus={this._eventBus}
             boxFace={BoxFaceEnum.Front}
             sceneManager={this.sceneManager}
-          ></BoxFaceContainer>
+          ></BoxFaceContainer> */}
         </>
       );
       const r = ReactDOM.createRoot(containerDom);

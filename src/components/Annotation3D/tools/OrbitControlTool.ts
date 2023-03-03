@@ -13,7 +13,7 @@ import {
   Vector3,
 } from 'three';
 
-import { MouseAndKeyEvent, InputEmitter } from '../Input';
+import { InputEmitter, MouseAndKeyEvent } from '../Input';
 import Renderer from '../Renderer';
 import BaseTool from './BaseTool';
 

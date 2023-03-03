@@ -26,7 +26,7 @@ export default function BoxFaceContainer({ eventBus, boxFace, sceneManager }: Pr
 
   return (
     <div>
-      <span>{boxFace}</span>
+      <span>{BoxFaceEnum[boxFace]}</span>
       <canvas
         ref={setCanvas}
         width={editToolBound.width}
