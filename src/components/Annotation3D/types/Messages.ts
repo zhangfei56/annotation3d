@@ -1,5 +1,3 @@
-export type AnnotationType = 'box3d' | 'box2d';
-
 export enum ObjectBusEvent {
   RenderAll = 'RenderAll',
   ClickedBox3D = 'ClickedBox3D',
@@ -38,6 +36,26 @@ export interface Frame {
 
   annotations: AnnotationResult[];
 }
+
+export interface Project {
+  name: string;
+  description: string;
+  annotationObjects: AnnotationType[];
+  clips: Clip[];
+}
+
+type Color = number;
+export interface AnnotationType {
+  name: string;
+  shapeType: 'Cube' | 'Line' | 'Polygon' | 'Point';
+  color: Color;
+}
+
+export interface AnnotationInstance {
+  type: AnnotationType;
+}
+
+// export interface
 
 export interface Clip {
   id: string;

@@ -1,31 +1,16 @@
 import * as THREE from 'three';
 
-export const HelperLineConfig = {
-  Up: {
-    x: undefined,
-    y: 1,
-  },
-  Down: {
-    x: undefined,
-    y: -1,
-  },
-  Left: {
-    x: -1,
-    y: undefined,
-  },
-  Right: {
-    x: 1,
-    y: undefined,
-  },
-};
+export type HelperLinePosition = 'Up' | 'Down' | 'Left' | 'Right';
+
+
 export class DashedHelperLine {
   private _line: THREE.Line;
   private _points: THREE.Vector3[];
 
-  public direction: keyof typeof HelperLineConfig;
+  public direction: HelperLinePosition;
 
   constructor(
-    direction: keyof typeof HelperLineConfig,
+    direction: HelperLinePosition,
     points: THREE.Vector3[],
     material: THREE.LineDashedMaterial,
   ) {

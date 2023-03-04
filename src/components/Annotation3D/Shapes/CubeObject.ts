@@ -24,9 +24,6 @@ export const NegativeXUnit = new THREE.Vector3(-1, 0, 0);
 export const YUnit = new THREE.Vector3(0, 1, 0);
 export const NegativeYUnit = new THREE.Vector3(0, -1, 0);
 export const ZUnit = new THREE.Vector3(0, 0, 1);
-const XNegativeUnit = new THREE.Vector3(-1, 0, 0);
-const UnitQua = new THREE.Quaternion();
-const ZeroBox3 = new THREE.Box3().setFromCenterAndSize(ZeroVector, ScaleUnit);
 
 const XNegativeQuat = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(0, 0, 1),
@@ -38,8 +35,6 @@ class CubeObject extends Object3D implements BaseShape {
 
   private surface: SurfaceMesh;
   private _lines: CubeLines;
-
-  // private _box = new Box3();
 
   public axesArr: ArrowHelper[];
 
@@ -58,7 +53,6 @@ class CubeObject extends Object3D implements BaseShape {
 
     this._color = color;
 
-    // this._box.setFromObject(this);
     this._lines = new CubeLines(color);
     this.add(this._lines);
     this.axesArr = [];

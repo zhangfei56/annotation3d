@@ -5,7 +5,7 @@ import { CameraHelper, Matrix3, Matrix4, Quaternion, Vector2, Vector3 } from 'th
 import SceneManager from '../../SceneManager';
 import CubeObject, { NegativeXUnit, NegativeYUnit, ZUnit } from '../../Shapes/CubeObject';
 import { ObjectBusEvent } from '../../types/Messages';
-import { DashedHelperLine } from './DashedHelperLine';
+import { DashedHelperLine, HelperLinePosition } from './DashedHelperLine';
 import { InputEmitter, MouseEvent, Point2D } from './Input';
 
 /**
@@ -63,7 +63,6 @@ const FaceToCameraMap = {
 export type AvailableFace = keyof typeof FaceToCameraMap;
 //  BoxFaceEnum.Left | BoxFaceEnum.Up | BoxFaceEnum.Front;
 
-type HelperLinePosition = 'Up' | 'Down' | 'Left' | 'Right';
 
 const RedDashedMaterial = new THREE.LineDashedMaterial({
   color: 'red',

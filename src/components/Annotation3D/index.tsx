@@ -76,29 +76,7 @@ function Annotation3D(): JSX.Element {
               height={window.innerHeight / 2}
             ></canvas>
           </Col>
-          <Col id="three-view-id">
-            {/* <Row>
-              <canvas
-                ref={setLeftEditCanvas}
-                width={editToolBound.width}
-                height={editToolBound.height}
-              ></canvas>
-            </Row>
-            <Row>
-              <canvas
-                ref={setUpEditCanvas}
-                width={editToolBound.width}
-                height={editToolBound.height}
-              ></canvas>
-            </Row>
-            <Row>
-              <canvas
-                ref={setFrontEditCanvas}
-                width={editToolBound.width}
-                height={editToolBound.height}
-              ></canvas>
-            </Row> */}
-          </Col>
+          <Col id="three-view-id"></Col>
         </Row>
 
         <div className="control"></div>
@@ -108,8 +86,10 @@ function Annotation3D(): JSX.Element {
 
   const InfoBar = <div></div>;
 
+  const providers = [<ClipContextProvider key={`providers-1`} />];
+
   return (
-    <MultiProvider providers={[<ClipContextProvider />]}>
+    <MultiProvider providers={providers}>
       <div style={{ display: 'flex' }}>
         <Sidebar items={sideBarList}></Sidebar>
         {Workspace}
