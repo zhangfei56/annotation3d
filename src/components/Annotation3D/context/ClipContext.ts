@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 import type { Clip, Frame } from '../types/Messages';
 
-export interface CurrentClip {
+export interface ClipContent {
   currentClip: Clip | undefined;
   loadNext: () => void;
   currentFrame: Frame | undefined;
@@ -10,7 +10,7 @@ export interface CurrentClip {
   preFrame: () => Frame | undefined;
 }
 
-const ClipContext = createContext<CurrentClip>({
+const ClipContext = createContext<ClipContent>({
   currentClip: undefined,
   loadNext: () => {},
   currentFrame: undefined,
@@ -23,7 +23,7 @@ const ClipContext = createContext<CurrentClip>({
 });
 ClipContext.displayName = 'ClipContext';
 
-export function useCurrentClip(): CurrentClip {
+export function useCurrentClip(): ClipContent {
   return useContext(ClipContext);
 }
 

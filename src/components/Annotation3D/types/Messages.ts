@@ -18,14 +18,57 @@ export interface Quaternion {
   z: number;
   w: number;
 }
-export interface AnnotationResult {
-  type: AnnotationType;
+
+export enum AnnotationType {
+  Cube = 'Cube',
+  Line = 'Line',
+  Polygon = 'Polygon',
+  Point = 'Point',
+}
+
+export interface Project {
+  name: string;
+  description: string;
+  annotationObjects: AnnotationClass[];
+  clips: Clip[];
+}
+
+type Color = number;
+export interface AnnotationClass {
+  name: string;
+  shapeType: AnnotationType;
+  color: Color;
+}
+
+interface TagTemplate {
+  id: string;
+  name: string;
+  type: 'input' | 'radio' | 'checkbox';
+  value: string | string[];
+}
+
+interface Tag {
+  type: TagTemplate;
+  name: string;
+  value: string;
+}
+
+interface BaseAnnotationAttribute {
+  id: string;
+  shapeType: keyof typeof AnnotationType;
+  tags?: Tag[];
+}
+
+interface CubeAnnotation extends BaseAnnotationAttribute {
   position: Point3D;
   length: number;
   width: number;
   height: number;
   orientation: Quaternion;
 }
+
+export type AnnotationInstance = CubeAnnotation;
+// export interface
 
 export interface Frame {
   id: string;
@@ -34,29 +77,8 @@ export interface Frame {
   frontImage: string;
   leftImage: string;
 
-  annotations: AnnotationResult[];
+  annotations: AnnotationInstance[];
 }
-
-export interface Project {
-  name: string;
-  description: string;
-  annotationObjects: AnnotationType[];
-  clips: Clip[];
-}
-
-type Color = number;
-export interface AnnotationType {
-  name: string;
-  shapeType: 'Cube' | 'Line' | 'Polygon' | 'Point';
-  color: Color;
-}
-
-export interface AnnotationInstance {
-  type: AnnotationType;
-}
-
-// export interface
-
 export interface Clip {
   id: string;
   frameSize: number;

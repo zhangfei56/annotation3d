@@ -1,56 +1,13 @@
 import { VideoCameraAddOutlined } from '@ant-design/icons';
-import { Col, Row } from 'antd';
-import EventEmitter from 'eventemitter3';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useMountedState } from 'react-use';
-import * as THREE from 'three';
-import { CameraHelper, Vector2 } from 'three';
 
-import imageUrl from '../../assets/11.png';
 import MultiProvider from '../MultiProvider';
-import ClipContext from './context/ClipContext';
-import { InputEmitter, MouseAndKeyEvent } from './Input';
-import { loadPcd } from './loadPcd';
 import { ClipContextProvider } from './providers/ClipContextProvider';
-import Renderer from './Renderer';
-import SceneManager from './SceneManager';
 import Sidebar, { SidebarItem } from './Sidebar';
 import { CameraSide } from './Sidebar/CameraSide';
-import { ToolsManager } from './toolsManager';
-import { ObjectBusEvent } from './types/Messages';
+import { Workspace } from './Workspace';
 
 function Annotation3D(): JSX.Element {
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
-
-  const sceneManager = useMemo(() => {
-    return new SceneManager();
-  }, []);
-  const eventBus = useMemo(() => new EventEmitter<ObjectBusEvent>(), []);
-
-  const renderer = useMemo(() => {
-    if (canvas) {
-      return new Renderer(canvas, sceneManager.scene, eventBus);
-    }
-    return null;
-  }, [canvas]);
-
-  let input;
-
-  let isInitEdit = false;
-
-  useEffect(() => {
-    if (!isInitEdit && renderer && canvas) {
-      input = new InputEmitter(canvas!, renderer.getCamera(), sceneManager, eventBus);
-
-      new ToolsManager(input, renderer, sceneManager, eventBus);
-      loadPcd(renderer, sceneManager);
-      //
-      renderer.render();
-
-      isInitEdit = true;
-    }
-  }, [isInitEdit, renderer, canvas]);
-
   const CameraSidebarItem = useMemo(() => {
     return function CameraSidebarItemImpl() {
       return <CameraSide />;
@@ -65,37 +22,20 @@ function Annotation3D(): JSX.Element {
     },
   ];
 
-  const Workspace = (
-    <div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Row>
-          <Col>
-            <canvas
-              ref={setCanvas}
-              width={window.innerWidth / 2}
-              height={window.innerHeight / 2}
-            ></canvas>
-          </Col>
-          <Col id="three-view-id"></Col>
-        </Row>
-
-        <div className="control"></div>
-      </div>
-    </div>
-  );
-
   const InfoBar = <div></div>;
 
-  const providers = [<ClipContextProvider key={`providers-1`} />];
+  // const providers = [<ClipContextProvider key={`providers-1`} />];
 
   return (
-    <MultiProvider providers={providers}>
+    // <MultiProvider providers={providers}>
+    <ClipContextProvider>
       <div style={{ display: 'flex' }}>
         <Sidebar items={sideBarList}></Sidebar>
-        {Workspace}
+        <Workspace />
         {InfoBar}
       </div>
-    </MultiProvider>
+    </ClipContextProvider>
+    // </MultiProvider>
   );
 }
 export default Annotation3D;

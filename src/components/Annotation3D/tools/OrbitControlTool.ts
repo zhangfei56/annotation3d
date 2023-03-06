@@ -13,7 +13,7 @@ import {
   Vector3,
 } from 'three';
 
-import { InputEmitter, MouseAndKeyEvent } from '../Input';
+import { InputEmitter } from '../Input';
 import Renderer from '../Renderer';
 import BaseTool from './BaseTool';
 
@@ -625,5 +625,17 @@ export class OrbitControlTool extends BaseTool {
     }
 
     this.update();
+  };
+
+  getPolarAngle = function () {
+    return spherical.phi;
+  };
+
+  getAzimuthalAngle = function () {
+    return spherical.theta;
+  };
+
+  getDistance = () => {
+    return this.object.position.distanceTo(this.target);
   };
 }

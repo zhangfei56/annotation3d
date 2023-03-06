@@ -41,7 +41,7 @@ class CubeObject extends Object3D implements BaseShape {
   public geometry: BoxGeometry;
 
   public constructor(
-    position: THREE.Vector3 = ZeroVector,
+    position: Point3D = ZeroVector,
     scale: Point3D = ScaleUnit,
     orientation: Quaternion,
     color = 0x0000ff,
