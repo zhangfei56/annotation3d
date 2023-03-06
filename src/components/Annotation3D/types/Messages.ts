@@ -18,24 +18,6 @@ export interface Quaternion {
   z: number;
   w: number;
 }
-export interface AnnotationResult {
-  type: AnnotationType;
-  position: Point3D;
-  length: number;
-  width: number;
-  height: number;
-  orientation: Quaternion;
-}
-
-export interface Frame {
-  id: string;
-  index: number;
-  pcd: string;
-  frontImage: string;
-  leftImage: string;
-
-  annotations: AnnotationResult[];
-}
 
 export interface Project {
   name: string;
@@ -51,14 +33,45 @@ export interface AnnotationType {
   color: Color;
 }
 
-export interface AnnotationInstance {
+interface LabelType {
+  name: string;
+  type: 'input' | 'radio' | 'checkbox';
+  value: string | string[];
+}
+
+interface Label {
+  type: LabelType;
+  name: string;
+  value: string;
+}
+
+interface BaseAnnotationAttribute {
+  id: string;
   type: AnnotationType;
 }
 
+interface CubeAnnotation extends BaseAnnotationAttribute {
+  position: Point3D;
+  length: number;
+  width: number;
+  height: number;
+  orientation: Quaternion;
+}
+
+export type AnnotationInstance = CubeAnnotation;
 // export interface
 
+export interface Frame {
+  id: string;
+  index: number;
+  pcd: string;
+  frontImage: string;
+  leftImage: string;
+}
 export interface Clip {
   id: string;
   frameSize: number;
   frames: Frame[];
+
+  annotations: AnnotationInstance[];
 }
