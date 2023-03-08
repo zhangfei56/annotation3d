@@ -1,7 +1,10 @@
 import { DynamicDrawUsage, Event, Object3D, Points, PointsMaterial } from 'three';
 
 import { DynamicBufferGeometry } from '../ThreeDee/DynamicBufferGeometry';
+import { FieldReader } from '../ThreeDee/fieldReaders';
 import { BaseShape } from './BaseShape';
+
+type FieldReaderFn = (fieldOffset: number, normalize: boolean) => FieldReader;
 
 export function createGeometry(usage: THREE.Usage): DynamicBufferGeometry {
   const geometry = new DynamicBufferGeometry(usage);
@@ -25,6 +28,11 @@ export function createPoints(
 export class PointCloud extends Object3D implements BaseShape {
   points: Points;
   geometry: DynamicBufferGeometry;
+
+  xReader?: FieldReaderFn;
+  yReader?: FieldReaderFn;
+  zReader?: FieldReaderFn;
+  colorReader?: FieldReaderFn;
   public constructor() {
     super();
     this.type = 'PointCloud';
@@ -44,9 +52,22 @@ export class PointCloud extends Object3D implements BaseShape {
     this.add(this.points);
   }
 
-  public updatePoint() {}
+  public update() {}
 
-  // public getThreeObject(): Points {
-  //   return this.points;
-  // }
+  public setReader({
+    xReader,
+    yReader,
+    zReader,
+    colorReader,
+  }: {
+    xReader?: FieldReaderFn;
+    yReader?: FieldReaderFn;
+    zReader?: FieldReaderFn;
+    colorReader?: FieldReaderFn;
+  }) {
+    this.xReader = xReader;
+    this.yReader = yReader;
+    this.zReader = zReader;
+    this.colorReader = colorReader;
+  }
 }

@@ -113,7 +113,6 @@ export function getReader(
   stride: number,
   /** @see https://www.khronos.org/opengl/wiki/Normalized_Integer */
   // Performance-sensitive: this code is called for every point cloud message
-  // eslint-disable-next-line @foxglove/no-boolean-parameters
   normalize = false,
   forceType?: PointFieldType | NumericType,
 ): FieldReader | undefined {

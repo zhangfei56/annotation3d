@@ -83,6 +83,4 @@ export interface Clip {
   id: string;
   frameSize: number;
   frames: Frame[];
-
-  annotations: AnnotationInstance[];
 }

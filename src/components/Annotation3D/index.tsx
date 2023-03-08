@@ -2,6 +2,7 @@ import { VideoCameraAddOutlined } from '@ant-design/icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import MultiProvider from '../MultiProvider';
+import { Control } from './Control';
 import { ClipContextProvider } from './providers/ClipContextProvider';
 import Sidebar, { SidebarItem } from './Sidebar';
 import { CameraSide } from './Sidebar/CameraSide';
@@ -24,18 +25,23 @@ function Annotation3D(): JSX.Element {
 
   const InfoBar = <div></div>;
 
-  // const providers = [<ClipContextProvider key={`providers-1`} />];
+  const providers = [<ClipContextProvider key={`providers-1`} />];
 
   return (
-    // <MultiProvider providers={providers}>
-    <ClipContextProvider>
+    <MultiProvider providers={providers}>
+      {/* <ClipContextProvider> */}
       <div style={{ display: 'flex' }}>
         <Sidebar items={sideBarList}></Sidebar>
-        <Workspace />
-        {InfoBar}
+        <div>
+          <div style={{ display: 'flex' }}>
+            <Workspace />
+            {InfoBar}
+          </div>
+          <Control />
+        </div>
       </div>
-    </ClipContextProvider>
-    // </MultiProvider>
+      {/* </ClipContextProvider> */}
+    </MultiProvider>
   );
 }
 export default Annotation3D;

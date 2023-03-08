@@ -1,3 +1,4 @@
+import log from 'log';
 import * as THREE from 'three';
 import {
   ArrowHelper,
@@ -81,14 +82,28 @@ class CubeObject extends Object3D implements BaseShape {
     this.scale.set(scale.x, scale.y, scale.z);
   }
 
-  public changeSize(scale: { x: number; y: number; z: number }): void {
+  public update({
+    position,
+    scale,
+    orientation,
+  }: {
+    position: Point3D;
+    scale: Point3D;
+    orientation: Quaternion;
+  }): void {
+    log.debug('cube update');
     //
+    if (position) {
+      this.position.set(position.x, position.y, position.z);
+    }
+    if (scale) {
+      this.scale.set(scale.x, scale.y, scale.z);
+    }
+    if (orientation) {
+      this.quaternion.set(orientation.x, orientation.y, orientation.z, orientation.w);
+    }
 
-    this.scale.set(scale.x, scale.y, scale.z);
     this.updateMatrix();
-    // this.surface.scale.set(scale.x, scale.y, scale.z);
-    // this.surface.updateMatrix();
-    // this.surface.updateMatrixWorld();
   }
 
   // 向某个方向延展

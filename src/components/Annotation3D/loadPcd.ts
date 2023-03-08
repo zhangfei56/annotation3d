@@ -56,7 +56,7 @@ function toDatatype(type: string, size: number) {
 }
 const tempColor = { r: 0, g: 0, b: 0, a: 0 };
 
-export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
+export async function loadPcd(pcdUrl: string, pointCloud: PointCloud) {
   const res = await axios.get(pcdUrl, { responseType: 'arraybuffer' });
   const buf = res.data;
 
@@ -93,8 +93,6 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
       colorReader = getReader(fieldObj, stride);
     }
   }
-  const pointCloud = new PointCloud();
-  sceneManager.addPointCloud(pointCloud);
   const geometry = pointCloud.geometry;
 
   const pointCount = header.points;
@@ -140,7 +138,7 @@ export async function loadPcd(renderder: Renderer, sceneManager: SceneManager) {
   colorAttribute.needsUpdate = true;
   geometry.computeBoundingSphere();
 
-  renderder.render();
+  // renderder.render();
 
   //
 

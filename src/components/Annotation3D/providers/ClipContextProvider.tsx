@@ -3,7 +3,7 @@ import { useAsync } from 'react-use';
 
 import useShallowMemo from '../../../utils/useShallowMemo';
 import ClipContext, { ClipContent } from '../context/ClipContext';
-import { Clip } from '../types/Messages';
+import { Clip, Frame } from '../types/Messages';
 const mockData: Clip = {
   id: '1',
   frameSize: 2,
@@ -49,15 +49,16 @@ const mockData: Clip = {
 export function ClipContextProvider(props: PropsWithChildren<unknown>): JSX.Element {
   const [currentClip, setCurrentClip] = useState<Clip | undefined>();
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [currentFrame, setCurrentFrame] = useState<Frame | undefined>();
 
-  const currentFrame = useMemo(() => {
+  useEffect(() => {
     if (!currentClip) {
       return undefined;
     }
     if (currentClip.frames[currentFrameIndex] !== undefined) {
-      return currentClip.frames[currentFrameIndex];
+      const temp = currentClip.frames[currentFrameIndex];
+      setCurrentFrame(temp);
     }
-    return undefined;
   }, [currentClip, currentFrameIndex]);
 
   useAsync(async () => {

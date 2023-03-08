@@ -29,7 +29,7 @@ export function Workspace() {
   const [renderer, setRenderder] = useState<Renderer | undefined>();
   const { currentClip, currentFrame } = useCurrentClip();
   const transferSpace = useMemo(() => {
-    return new TransferSpace(sceneManager);
+    return new TransferSpace(sceneManager, eventBus);
   }, [sceneManager]);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export function Workspace() {
 
       new ToolsManager(inputEmitter, renderderTemp, sceneManager, eventBus);
 
-      loadPcd(renderderTemp, sceneManager);
+      // loadPcd(sceneManager);
       renderderTemp.render();
     }
   }, [canvas]);
@@ -59,21 +59,19 @@ export function Workspace() {
   }, [currentFrame, currentClip]);
 
   return (
-    <div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <Row>
-          <Col>
-            <canvas
-              ref={setCanvas}
-              width={window.innerWidth / 2}
-              height={window.innerHeight / 2}
-            ></canvas>
-          </Col>
-          <Col id="three-view-id"></Col>
-        </Row>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <Row>
+        <Col>
+          <canvas
+            ref={setCanvas}
+            width={window.innerWidth / 2}
+            height={window.innerHeight / 2}
+          ></canvas>
+        </Col>
+        <Col id="three-view-id"></Col>
+      </Row>
 
-        <div className="control"></div>
-      </div>
+      <div className="control"></div>
     </div>
   );
 }

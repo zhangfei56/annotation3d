@@ -1,7 +1,9 @@
+import EventEmitter from 'eventemitter3';
+
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
 import CubeObject from './Shapes/CubeObject';
-import { Clip, Frame } from './types/Messages';
+import { Clip, Frame, ObjectBusEvent } from './types/Messages';
 
 export class TransferSpace {
   private _frameAnnotationToShape: Map<string, BaseShape>;
@@ -12,20 +14,40 @@ export class TransferSpace {
   private shapeSettings;
   private tagSettings;
   private _sceneManager: SceneManager;
+  private _eventBus: EventEmitter<ObjectBusEvent>;
 
-  constructor(sceneManager: SceneManager) {
+  constructor(sceneManager: SceneManager, eventBus: EventEmitter<ObjectBusEvent>) {
     // this._clipInfo = clipInfo;
     this._frameAnnotationToShape = new Map();
     this._sceneManager = sceneManager;
+    this._eventBus = eventBus;
   }
 
   setClipInfo(): void {}
 
   updateFrame(frame?: Frame): void {
     frame?.annotations.forEach((rowAnnotation) => {
-      const existed = this._frameAnnotationToShape.get(rowAnnotation.id);
-      if (existed) {
+      const existedCube = this._frameAnnotationToShape.get(rowAnnotation.id);
+      if (existedCube) {
         // existed.update()
+        existedCube.update({
+          position: {
+            x: rowAnnotation.position.x,
+            y: rowAnnotation.position.y,
+            z: rowAnnotation.position.z,
+          },
+          scale: {
+            x: rowAnnotation.length,
+            y: rowAnnotation.width,
+            z: rowAnnotation.height,
+          },
+          orientation: {
+            x: rowAnnotation.orientation.x,
+            y: rowAnnotation.orientation.y,
+            z: rowAnnotation.orientation.z,
+            w: rowAnnotation.orientation.w,
+          },
+        });
       } else {
         if (rowAnnotation.shapeType === 'Cube') {
           const newShape = new CubeObject(
@@ -50,6 +72,7 @@ export class TransferSpace {
           this._sceneManager.addAnnotationBox(newShape);
         }
       }
+      this._eventBus.emit(ObjectBusEvent.RenderAll);
     });
   }
 

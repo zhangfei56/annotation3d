@@ -40,13 +40,13 @@ export const routes = [
     path: '/user',
     name: 'user',
     layout: false,
-    children: [
-      {
-        name: 'login',
-        path: 'login',
-        element: <Login />,
-      },
-    ],
+    // children: [
+    //   {
+    //     name: 'login',
+    //     path: 'login',
+    //     element: <Login />,
+    //   },
+    // ],
   },
   {
     path: '/',
