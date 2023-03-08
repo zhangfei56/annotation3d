@@ -8,7 +8,6 @@ import { parsePCD } from '../../utils/pcdParser';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import { PointCloud } from './Shapes/PointCloud';
-import { getColorConverter } from './ThreeDee/colors';
 import { getReader } from './ThreeDee/fieldReaders';
 
 export type PointField = Readonly<{
@@ -54,7 +53,31 @@ function toDatatype(type: string, size: number) {
       throw new Error(`Unknow Datatype in type='${type}' and size=${size}`);
   }
 }
-const tempColor = { r: 0, g: 0, b: 0, a: 0 };
+
+function getReaderFromHeader(fieldObjs: PointField[], stride: number) {
+  let xReader;
+  let yReader;
+  let zReader;
+  let colorReader;
+  for (let i = 0; i < fieldObjs.length; i++) {
+    const fieldObj = fieldObjs[i];
+    if (fieldObj.name === 'x') {
+      xReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'y') {
+      yReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'z') {
+      zReader = getReader(fieldObj, stride);
+    } else if (fieldObj.name === 'intensity') {
+      colorReader = getReader(fieldObj, stride);
+    }
+  }
+  return {
+    xReader,
+    yReader,
+    zReader,
+    colorReader,
+  };
+}
 
 export async function loadPcd(pcdUrl: string, pointCloud: PointCloud) {
   const res = await axios.get(pcdUrl, { responseType: 'arraybuffer' });
@@ -77,70 +100,9 @@ export async function loadPcd(pcdUrl: string, pointCloud: PointCloud) {
 
   const stride = header.rowSize;
   // get reader
-  let xReader;
-  let yReader;
-  let zReader;
-  let colorReader;
-  for (let i = 0; i < fieldObjs.length; i++) {
-    const fieldObj = fieldObjs[i];
-    if (fieldObj.name === 'x') {
-      xReader = getReader(fieldObj, stride);
-    } else if (fieldObj.name === 'y') {
-      yReader = getReader(fieldObj, stride);
-    } else if (fieldObj.name === 'z') {
-      zReader = getReader(fieldObj, stride);
-    } else if (fieldObj.name === 'intensity') {
-      colorReader = getReader(fieldObj, stride);
-    }
-  }
-  const geometry = pointCloud.geometry;
+  const readers = getReaderFromHeader(fieldObjs, stride);
+  pointCloud.setReader(readers);
 
   const pointCount = header.points;
-  const pointStep = stride;
-
-  geometry.resize(pointCount);
-  const positionAttribute = geometry.attributes.position!;
-
-  const colorAttribute = geometry.attributes.color;
-
-  const colorConverter = getColorConverter(
-    // {
-    //   colorMode: 'colormap',
-    //   colorMap: 'turbo',
-    //   flatColor: '',
-    //   gradient: ['', ''],
-    //   explicitAlpha: 0,
-    // },
-    {
-      colorMode: 'gradient',
-      colorMap: 'turbo',
-      flatColor: '',
-      gradient: ['#40ffff', '#81b929eb'],
-      explicitAlpha: 0,
-    },
-    0,
-    40,
-  );
-
-  const view = new DataView(content.buffer, content.byteOffset, content.byteLength);
-  for (let i = 0; i < pointCount; i++) {
-    const pointOffset = i * pointStep;
-    const x = xReader?.(view, pointOffset) ?? 0;
-    const y = yReader?.(view, pointOffset) ?? 0;
-    const z = zReader?.(view, pointOffset) ?? 0;
-    positionAttribute.setXYZ(i, x, y, z);
-
-    const colorValue = colorReader?.(view, pointOffset) ?? 0;
-    colorConverter(tempColor, colorValue);
-    colorAttribute.setXYZW(i, tempColor.r, tempColor.g, tempColor.b, tempColor.a);
-  }
-  positionAttribute.needsUpdate = true;
-  colorAttribute.needsUpdate = true;
-  geometry.computeBoundingSphere();
-
-  // renderder.render();
-
-  //
-
-  return fieldObjs;
+  pointCloud.update({ pointCount, pointStep: stride, content });
 }

@@ -1,8 +1,10 @@
 import EventEmitter from 'eventemitter3';
 
+import { loadPcd } from './loadPcd';
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
 import CubeObject from './Shapes/CubeObject';
+import { PointCloud } from './Shapes/PointCloud';
 import { Clip, Frame, ObjectBusEvent } from './types/Messages';
 
 export class TransferSpace {
@@ -15,17 +17,28 @@ export class TransferSpace {
   private tagSettings;
   private _sceneManager: SceneManager;
   private _eventBus: EventEmitter<ObjectBusEvent>;
+  private _pointCloud: PointCloud;
 
   constructor(sceneManager: SceneManager, eventBus: EventEmitter<ObjectBusEvent>) {
     // this._clipInfo = clipInfo;
     this._frameAnnotationToShape = new Map();
     this._sceneManager = sceneManager;
     this._eventBus = eventBus;
+    this._pointCloud = new PointCloud();
+    sceneManager.addPointCloud(this._pointCloud);
   }
 
   setClipInfo(): void {}
 
   updateFrame(frame?: Frame): void {
+    if (frame?.pcd) {
+      loadPcd(frame.pcd, this._pointCloud);
+    }
+    const existedSharpIds = Array.from(this._frameAnnotationToShape.keys());
+    const currentFrameIds = frame?.annotations.map((item) => item.id) ?? [];
+    const needRemoveIds = existedSharpIds.filter(
+      (item) => !currentFrameIds.includes(item),
+    );
     frame?.annotations.forEach((rowAnnotation) => {
       const existedCube = this._frameAnnotationToShape.get(rowAnnotation.id);
       if (existedCube) {

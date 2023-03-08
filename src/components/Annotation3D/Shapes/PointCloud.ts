@@ -1,10 +1,9 @@
 import { DynamicDrawUsage, Event, Object3D, Points, PointsMaterial } from 'three';
 
+import { getColorConverter } from '../ThreeDee/colors';
 import { DynamicBufferGeometry } from '../ThreeDee/DynamicBufferGeometry';
 import { FieldReader } from '../ThreeDee/fieldReaders';
 import { BaseShape } from './BaseShape';
-
-type FieldReaderFn = (fieldOffset: number, normalize: boolean) => FieldReader;
 
 export function createGeometry(usage: THREE.Usage): DynamicBufferGeometry {
   const geometry = new DynamicBufferGeometry(usage);
@@ -25,14 +24,34 @@ export function createPoints(
   return points;
 }
 
+const colorConverter = getColorConverter(
+  // {
+  //   colorMode: 'colormap',
+  //   colorMap: 'turbo',
+  //   flatColor: '',
+  //   gradient: ['', ''],
+  //   explicitAlpha: 0,
+  // },
+  {
+    colorMode: 'gradient',
+    colorMap: 'turbo',
+    flatColor: '',
+    gradient: ['#40ffff', '#81b929eb'],
+    explicitAlpha: 0,
+  },
+  0,
+  40,
+);
+const tempColor = { r: 0, g: 0, b: 0, a: 0 };
+
 export class PointCloud extends Object3D implements BaseShape {
   points: Points;
   geometry: DynamicBufferGeometry;
 
-  xReader?: FieldReaderFn;
-  yReader?: FieldReaderFn;
-  zReader?: FieldReaderFn;
-  colorReader?: FieldReaderFn;
+  xReader?: FieldReader;
+  yReader?: FieldReader;
+  zReader?: FieldReader;
+  colorReader?: FieldReader;
   public constructor() {
     super();
     this.type = 'PointCloud';
@@ -52,7 +71,37 @@ export class PointCloud extends Object3D implements BaseShape {
     this.add(this.points);
   }
 
-  public update() {}
+  public update({
+    pointCount,
+    pointStep,
+    content,
+  }: {
+    pointCount: number;
+    pointStep: number;
+    content: ArrayBufferView;
+  }) {
+    this.geometry.resize(pointCount);
+
+    const positionAttribute = this.geometry.attributes.position!;
+
+    const colorAttribute = this.geometry.attributes.color;
+
+    const view = new DataView(content.buffer, content.byteOffset, content.byteLength);
+    for (let i = 0; i < pointCount; i++) {
+      const pointOffset = i * pointStep;
+      const x = this.xReader?.(view, pointOffset) ?? 0;
+      const y = this.yReader?.(view, pointOffset) ?? 0;
+      const z = this.zReader?.(view, pointOffset) ?? 0;
+      positionAttribute.setXYZ(i, x, y, z);
+
+      const colorValue = this.colorReader?.(view, pointOffset) ?? 0;
+      colorConverter(tempColor, colorValue);
+      colorAttribute.setXYZW(i, tempColor.r, tempColor.g, tempColor.b, tempColor.a);
+    }
+    positionAttribute.needsUpdate = true;
+    colorAttribute.needsUpdate = true;
+    this.geometry.computeBoundingSphere();
+  }
 
   public setReader({
     xReader,
@@ -60,10 +109,10 @@ export class PointCloud extends Object3D implements BaseShape {
     zReader,
     colorReader,
   }: {
-    xReader?: FieldReaderFn;
-    yReader?: FieldReaderFn;
-    zReader?: FieldReaderFn;
-    colorReader?: FieldReaderFn;
+    xReader?: FieldReader;
+    yReader?: FieldReader;
+    zReader?: FieldReader;
+    colorReader?: FieldReader;
   }) {
     this.xReader = xReader;
     this.yReader = yReader;
