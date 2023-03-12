@@ -4,7 +4,7 @@ import { ArrowHelper, Matrix4, Vector2, Vector3 } from 'three';
 
 import { InputEmitter, MouseAndKeyEvent, MouseLevel, Point2D } from '../Input';
 import SceneManager from '../SceneManager';
-import CubeObject from '../Shapes/CubeObject';
+import CubeShape from '../Shapes/CubeShape';
 import { ObjectBusEvent } from '../types/Messages';
 import BaseTool from './BaseTool';
 import { BoxFaceEnum, EditBoxFace } from './EditBoxFace/EditBoxFace';
@@ -15,7 +15,7 @@ export class EditOneBoxTool extends BaseTool {
   public activeKeyCode = 'KeyEE';
 
   private input: InputEmitter;
-  private _cubeObject: CubeObject | null = null;
+  private _cubeObject: CubeShape | null = null;
   private _eventBus: EventEmitter<ObjectBusEvent>;
   private sceneManager: SceneManager;
   private _multiEditViews: EditBoxFace[];
@@ -67,7 +67,7 @@ export class EditOneBoxTool extends BaseTool {
     }
   }
 
-  public setSelected(_box: CubeObject): void {
+  public setSelected(_box: CubeShape): void {
     this._cubeObject = _box;
   }
 

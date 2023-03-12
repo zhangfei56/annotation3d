@@ -1,10 +1,14 @@
-import React, { useEffect } from 'react';
-import { PropsWithChildren, useCallback, useMemo, useRef, useState } from 'react';
-import { useResizeDetector } from 'react-resize-detector';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import imageUrl from '../../../assets/11.png';
-
-function AutoCanvas({ width, url }): JSX.Element {
+export function AutoCanvas({
+  width,
+  url,
+  showName,
+}: {
+  width: number;
+  url: string;
+  showName: string;
+}): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const image = useMemo(() => {
     const imageTag = new Image();
@@ -33,26 +37,4 @@ function AutoCanvas({ width, url }): JSX.Element {
   }, [naturalSize, width]);
 
   return <canvas ref={canvasRef}></canvas>;
-}
-
-export function CameraSide(): JSX.Element {
-  const {
-    width,
-    height,
-    ref: rootRef,
-  } = useResizeDetector({
-    refreshRate: 0,
-    refreshMode: 'debounce',
-  });
-
-  const autos = [imageUrl].map((item) => (
-    <AutoCanvas width={width ?? 100} url={item}></AutoCanvas>
-  ));
-
-  // TS requires our return type to be Element instead of Node
-  return (
-    <div ref={rootRef} id="camera-side-body">
-      {autos}
-    </div>
-  );
 }

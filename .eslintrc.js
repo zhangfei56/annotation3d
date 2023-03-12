@@ -55,5 +55,6 @@ module.exports = {
         aspects: ['invalidHref', 'preferButton'],
       },
     ],
+    'react-hooks/exhaustive-deps': 'error',
   },
 };

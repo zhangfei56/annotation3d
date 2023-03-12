@@ -4,12 +4,13 @@ import { InputEmitter, MouseAndKeyEvent } from './Input';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
-import CubeObject from './Shapes/CubeObject';
+import CubeShape from './Shapes/CubeShape';
 import BaseTool from './tools/BaseTool';
 import { CreateBoxTool } from './tools/CreateBoxTool';
 import { EditBoxFace } from './tools/EditBoxFace/EditBoxFace';
 import { EditOneBoxTool } from './tools/EditOneBoxTool';
 import { OrbitControlTool } from './tools/OrbitControlTool';
+import { TransferSpace } from './TransferSpace';
 import { ObjectBusEvent } from './types/Messages';
 
 type ToolMouseHandleType =
@@ -31,15 +32,17 @@ export class ToolsManager {
   };
   private editOneBoxTool;
   private _eventBus: EventEmitter<ObjectBusEvent>;
+  private _transferSpace: TransferSpace;
 
   constructor(
     input: InputEmitter,
     renderder: Renderer,
     sceneManager: SceneManager,
-    // multiEditViews: EditBoxFace[],
     eventBus: EventEmitter<ObjectBusEvent>,
+    transferSpace: TransferSpace,
   ) {
     this._eventBus = eventBus;
+    this._transferSpace = transferSpace;
     this.input = input;
     this.viewTool = new OrbitControlTool(
       input,
@@ -48,7 +51,7 @@ export class ToolsManager {
       renderder.getDomElement(),
     );
 
-    const createTool = new CreateBoxTool(input, renderder, sceneManager);
+    const createTool = new CreateBoxTool(input, renderder, transferSpace);
     this.tools.push(createTool);
     this.editOneBoxTool = new EditOneBoxTool(
       input,
@@ -130,7 +133,7 @@ export class ToolsManager {
   };
 
   onObjectChooseEvent = (
-    clickedObject: CubeObject,
+    clickedObject: CubeShape,
     childThreeObjects: THREE.Object3D[],
   ) => {
     if (this.getActiveTool() == this.viewTool) {

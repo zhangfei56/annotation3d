@@ -13,11 +13,13 @@ const router = createBrowserRouter(routes);
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <div style={{ height: '100vh' }}>
-      <RouterProvider router={router}>
-        {/* <HashRouter> */}
-        {/* <ConfigProvider></ConfigProvider> */}
-        {/* </HashRouter> */}
-      </RouterProvider>
+      <ConfigProvider>
+        <RouterProvider router={router}>
+          {/* <HashRouter> */}
+
+          {/* </HashRouter> */}
+        </RouterProvider>
+      </ConfigProvider>
     </div>
   </React.StrictMode>,
 );

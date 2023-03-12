@@ -53,13 +53,13 @@ interface Tag {
   value: string;
 }
 
-interface BaseAnnotationAttribute {
+interface RowBaseAnnotation {
   id: string;
-  shapeType: keyof typeof AnnotationType;
   tags?: Tag[];
 }
 
-interface CubeAnnotation extends BaseAnnotationAttribute {
+export interface CubeRowAnnotation extends RowBaseAnnotation {
+  shapeType: AnnotationType.Cube;
   position: Point3D;
   length: number;
   width: number;
@@ -67,7 +67,7 @@ interface CubeAnnotation extends BaseAnnotationAttribute {
   orientation: Quaternion;
 }
 
-export type AnnotationInstance = CubeAnnotation;
+export type RowAnnotation = CubeRowAnnotation;
 // export interface
 
 export interface Frame {
@@ -77,7 +77,7 @@ export interface Frame {
   frontImage: string;
   leftImage: string;
 
-  annotations: AnnotationInstance[];
+  annotations: RowAnnotation[];
 }
 export interface Clip {
   id: string;

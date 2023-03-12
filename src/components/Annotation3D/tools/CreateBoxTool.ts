@@ -4,23 +4,24 @@ import { Vector3 } from 'three';
 import { InputEmitter, MouseAndKeyEvent, MouseLevel, Point2D } from '../Input';
 import Renderer from '../Renderer';
 import SceneManager from '../SceneManager';
-import CubeObject from '../Shapes/CubeObject';
+import CubeShape from '../Shapes/CubeShape';
+import { TransferSpace } from '../TransferSpace';
 import BaseTool from './BaseTool';
 
 export class CreateBoxTool extends BaseTool {
   public activeKeyCode = 'KeyA';
 
   private input: InputEmitter;
-  private box3d: CubeObject | null = null;
+  private box3d: CubeShape | null = null;
   private renderer: Renderer;
   private startPoint: Point2D | null = null;
-  private sceneManager: SceneManager;
+  private _transferSpace: TransferSpace;
 
-  constructor(input: InputEmitter, renderer: Renderer, sceneManager: SceneManager) {
+  constructor(input: InputEmitter, renderer: Renderer, transferSpace: TransferSpace) {
     super();
     this.input = input;
     this.renderer = renderer;
-    this.sceneManager = sceneManager;
+    this._transferSpace = transferSpace;
   }
 
   mouseDownHandle = (
@@ -35,15 +36,8 @@ export class CreateBoxTool extends BaseTool {
         y: worldPosition.y,
       };
       worldPosition.z = 0;
-      this.box3d = new CubeObject(worldPosition, new Vector3(1, 1, 1), {
-        x: 0,
-        y: 0,
-        z: 0,
-        w: 1,
-      });
-      this.sceneManager.addAnnotationBox(this.box3d);
-
-      this.renderer.render();
+      this.box3d = new CubeShape({ position: worldPosition });
+      this._transferSpace.addAnnotationToFrame(this.box3d);
     }
   };
 
@@ -67,7 +61,7 @@ export class CreateBoxTool extends BaseTool {
   ) => {
     event.stopHandleNext = true;
     // save
-    this.sceneManager.addAnnotationBox(this.box3d!);
+    this._transferSpace.updateAnnotation(this.box3d!);
 
     this.box3d = null;
     this.startPoint = null;

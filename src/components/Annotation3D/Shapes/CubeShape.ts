@@ -31,7 +31,7 @@ const XNegativeQuat = new THREE.Quaternion().setFromAxisAngle(
   Math.PI,
 );
 
-class CubeObject extends Object3D implements BaseShape {
+class CubeShape extends Object3D implements BaseShape {
   private _color: number;
 
   private surface: SurfaceMesh;
@@ -41,14 +41,19 @@ class CubeObject extends Object3D implements BaseShape {
 
   public geometry: BoxGeometry;
 
-  public constructor(
-    position: Point3D = ZeroVector,
-    scale: Point3D = ScaleUnit,
-    orientation: Quaternion,
+  public constructor({
+    position = ZeroVector,
+    scale = ScaleUnit,
+    orientation = { x: 0, y: 0, z: 0, w: 1 },
     color = 0x0000ff,
-  ) {
+  }: {
+    position?: Point3D;
+    scale?: Point3D;
+    orientation?: Quaternion;
+    color?: number;
+  }) {
     super();
-    this.type = 'Annotation3DBox';
+    this.type = 'SharpCube';
 
     this.geometry = new THREE.BoxGeometry(1, 1, 1);
 
@@ -154,8 +159,25 @@ class CubeObject extends Object3D implements BaseShape {
 
   public mouseDownHandler() {}
 
-  public render() {
-    // this.renderder.render()
+  public getRowAnnotationAttributes() {
+    return {
+      position: {
+        x: this.position.x,
+        y: this.position.y,
+        z: this.position.z,
+      },
+      scale: {
+        x: this.scale.x,
+        y: this.scale.y,
+        z: this.scale.z,
+      },
+      orientation: {
+        x: this.quaternion.x,
+        y: this.quaternion.y,
+        z: this.quaternion.z,
+        w: this.quaternion.w,
+      },
+    };
   }
 }
-export default CubeObject;
+export default CubeShape;

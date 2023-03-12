@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 import Renderder from './Renderer';
 import SceneManager from './SceneManager';
-import CubeObject from './Shapes/CubeObject';
+import CubeShape from './Shapes/CubeShape';
 import { ObjectBusEvent } from './types/Messages';
 
 export const MouseAndKeyEvent = {
@@ -57,9 +57,9 @@ export class InputEmitter extends EventEmitter {
     this.sceneManager = sceneManager;
 
     this.canvas.addEventListener('pointermove', this.onPointerMove);
-    document.addEventListener('pointerdown', this.onPointerDown);
-    document.addEventListener('keydown', this.onKeyDown);
-    document.addEventListener('wheel', this.onMouseWheel, { passive: false });
+    this.canvas.addEventListener('pointerdown', this.onPointerDown);
+    this.canvas.addEventListener('keydown', this.onKeyDown);
+    this.canvas.addEventListener('wheel', this.onMouseWheel, { passive: false });
     document.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();

@@ -2,7 +2,7 @@ import { PropsWithChildren, useCallback, useEffect, useMemo, useState } from 're
 import { useAsync } from 'react-use';
 
 import useShallowMemo from '../../../utils/useShallowMemo';
-import ClipContext, { ClipContent } from '../context/ClipContext';
+import ClipContext from '../context/ClipContext';
 import { Clip, Frame } from '../types/Messages';
 const mockData: Clip = {
   id: '1',
@@ -12,8 +12,8 @@ const mockData: Clip = {
       id: '1',
       index: 1,
       pcd: '/src/assets/frm.pcd',
-      frontImage: '',
-      leftImage: '',
+      frontImage: '/src/assets/11.png',
+      leftImage: '/src/assets/11.png',
       annotations: [
         {
           id: '1',
@@ -30,8 +30,8 @@ const mockData: Clip = {
       id: '2',
       index: 2,
       pcd: '/src/assets/frm.pcd',
-      frontImage: '',
-      leftImage: '',
+      frontImage: '/src/assets/11.png',
+      leftImage: '/src/assets/11.png',
       annotations: [
         {
           id: '1',

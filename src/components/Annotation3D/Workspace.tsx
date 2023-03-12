@@ -6,16 +6,14 @@ import { useMountedState } from 'react-use';
 import * as THREE from 'three';
 import { CameraHelper, Vector2 } from 'three';
 
-import imageUrl from '../../assets/11.png';
 import MultiProvider from '../MultiProvider';
 import ClipContext, { useCurrentClip } from './context/ClipContext';
 import { InputEmitter, MouseAndKeyEvent } from './Input';
-import { loadPcd } from './loadPcd';
 import { ClipContextProvider } from './providers/ClipContextProvider';
 import Renderer from './Renderer';
 import SceneManager from './SceneManager';
 import Sidebar, { SidebarItem } from './Sidebar';
-import { CameraSide } from './Sidebar/CameraSide';
+import { CameraViews } from './camera/CameraViews';
 import { ToolsManager } from './toolsManager';
 import { TransferSpace } from './TransferSpace';
 import { ObjectBusEvent } from './types/Messages';
@@ -45,9 +43,14 @@ export function Workspace() {
       );
       setInput(inputEmitter);
 
-      new ToolsManager(inputEmitter, renderderTemp, sceneManager, eventBus);
+      new ToolsManager(
+        inputEmitter,
+        renderderTemp,
+        sceneManager,
+        eventBus,
+        transferSpace,
+      );
 
-      // loadPcd(sceneManager);
       renderderTemp.render();
     }
   }, [canvas]);
@@ -60,16 +63,15 @@ export function Workspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <Row>
-        <Col>
-          <canvas
-            ref={setCanvas}
-            width={window.innerWidth / 2}
-            height={window.innerHeight / 2}
-          ></canvas>
-        </Col>
-        <Col id="three-view-id"></Col>
-      </Row>
+      <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <CameraViews />
+        <canvas
+          ref={setCanvas}
+          width={window.innerWidth / 2}
+          height={window.innerHeight / 2}
+        ></canvas>
+        <div id="three-view-id"></div>
+      </div>
 
       <div className="control"></div>
     </div>

@@ -2,13 +2,13 @@ import * as THREE from 'three';
 import { Object3D } from 'three';
 
 import { BaseShape } from './Shapes/BaseShape';
-import CubeObject from './Shapes/CubeObject';
+import CubeShape from './Shapes/CubeShape';
 import { PointCloud } from './Shapes/PointCloud';
 
 export default class SceneManager {
   public scene: THREE.Scene;
 
-  private annotationBoxes: CubeObject[];
+  private annotationBoxes: CubeShape[];
 
   private pointCouldShapes: PointCloud[];
 
@@ -24,7 +24,7 @@ export default class SceneManager {
     this.addShape(helperObject);
   }
 
-  public addAnnotationBox(box3d: CubeObject) {
+  public addAnnotationBox(box3d: CubeShape) {
     this.annotationBoxes.push(box3d);
     this.addShape(box3d);
   }

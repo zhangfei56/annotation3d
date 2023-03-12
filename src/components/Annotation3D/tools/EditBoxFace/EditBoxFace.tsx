@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { CameraHelper, Matrix3, Matrix4, Quaternion, Vector2, Vector3 } from 'three';
 
 import SceneManager from '../../SceneManager';
-import CubeObject, { NegativeXUnit, NegativeYUnit, ZUnit } from '../../Shapes/CubeObject';
+import CubeShape, { NegativeXUnit, NegativeYUnit, ZUnit } from '../../Shapes/CubeShape';
 import { ObjectBusEvent } from '../../types/Messages';
 import { DashedHelperLine, HelperLinePosition } from './DashedHelperLine';
 import { InputEmitter, MouseEvent, Point2D } from './Input';
@@ -63,7 +63,6 @@ const FaceToCameraMap = {
 export type AvailableFace = keyof typeof FaceToCameraMap;
 //  BoxFaceEnum.Left | BoxFaceEnum.Up | BoxFaceEnum.Front;
 
-
 const RedDashedMaterial = new THREE.LineDashedMaterial({
   color: 'red',
   linewidth: 0.05,
@@ -80,7 +79,7 @@ type MouseAction = 'Rotate' | 'Scale' | 'None';
 const DistanceBetweenCamera = 15;
 
 export class EditBoxFace {
-  private _annotation3DObject?: CubeObject;
+  private _annotation3DObject?: CubeShape;
   private _level: number;
   private _camera: THREE.OrthographicCamera;
   private _boxFace: AvailableFace;
@@ -170,7 +169,7 @@ export class EditBoxFace {
     return new Quaternion().setFromRotationMatrix(cameraRotateMatrix4);
   }
 
-  private setBox = (box: CubeObject): void => {
+  private setBox = (box: CubeShape): void => {
     this._annotation3DObject = box;
     this.adaptCameraViewToBox();
     this.render();

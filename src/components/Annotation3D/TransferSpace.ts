@@ -3,9 +3,68 @@ import EventEmitter from 'eventemitter3';
 import { loadPcd } from './loadPcd';
 import SceneManager from './SceneManager';
 import { BaseShape } from './Shapes/BaseShape';
-import CubeObject from './Shapes/CubeObject';
+import CubeShape from './Shapes/CubeShape';
 import { PointCloud } from './Shapes/PointCloud';
-import { Clip, Frame, ObjectBusEvent } from './types/Messages';
+import {
+  AnnotationType,
+  Clip,
+  CubeRowAnnotation,
+  Frame,
+  ObjectBusEvent,
+  RowAnnotation,
+} from './types/Messages';
+
+function getShapeUpdateAttributeFromRawMessage(rowMessage: RowAnnotation) {
+  let result: Record<string, any>;
+  switch (rowMessage.shapeType) {
+    case AnnotationType.Cube:
+      result = {
+        position: {
+          x: rowMessage.position.x,
+          y: rowMessage.position.y,
+          z: rowMessage.position.z,
+        },
+        scale: {
+          x: rowMessage.length,
+          y: rowMessage.width,
+          z: rowMessage.height,
+        },
+        orientation: {
+          x: rowMessage.orientation.x,
+          y: rowMessage.orientation.y,
+          z: rowMessage.orientation.z,
+          w: rowMessage.orientation.w,
+        },
+      };
+      break;
+  }
+
+  return result;
+}
+
+function getCubeRawAttributeFromShape(cubeShape: CubeShape) {
+  const attributes = cubeShape.getRowAnnotationAttributes();
+  return {
+    length: attributes.scale.x,
+    width: attributes.scale.y,
+    height: attributes.scale.z,
+    orientation: attributes.orientation,
+    position: attributes.position,
+  };
+}
+
+function createCubeRowFromSharp(cubeShape: CubeShape): CubeRowAnnotation {
+  const rawAttribute = cubeShape.getRowAnnotationAttributes();
+  return {
+    id: cubeShape.uuid,
+    shapeType: AnnotationType.Cube,
+    position: rawAttribute.position,
+    length: rawAttribute.scale.x,
+    width: rawAttribute.scale.y,
+    height: rawAttribute.scale.z,
+    orientation: rawAttribute.orientation,
+  };
+}
 
 export class TransferSpace {
   private _frameAnnotationToShape: Map<string, BaseShape>;
@@ -30,7 +89,8 @@ export class TransferSpace {
 
   setClipInfo(): void {}
 
-  updateFrame(frame?: Frame): void {
+  updateFrame(frame: Frame): void {
+    this._currentFrame = frame;
     if (frame?.pcd) {
       loadPcd(frame.pcd, this._pointCloud);
     }
@@ -39,48 +99,20 @@ export class TransferSpace {
     const needRemoveIds = existedSharpIds.filter(
       (item) => !currentFrameIds.includes(item),
     );
+    needRemoveIds.forEach((removeItem) => {
+      this._frameAnnotationToShape.get(removeItem)?.dispose();
+      this._frameAnnotationToShape.delete(removeItem);
+    });
+
     frame?.annotations.forEach((rowAnnotation) => {
-      const existedCube = this._frameAnnotationToShape.get(rowAnnotation.id);
-      if (existedCube) {
+      const updateAttributes = getShapeUpdateAttributeFromRawMessage(rowAnnotation);
+      const existedAnnotation = this._frameAnnotationToShape.get(rowAnnotation.id);
+      if (existedAnnotation) {
         // existed.update()
-        existedCube.update({
-          position: {
-            x: rowAnnotation.position.x,
-            y: rowAnnotation.position.y,
-            z: rowAnnotation.position.z,
-          },
-          scale: {
-            x: rowAnnotation.length,
-            y: rowAnnotation.width,
-            z: rowAnnotation.height,
-          },
-          orientation: {
-            x: rowAnnotation.orientation.x,
-            y: rowAnnotation.orientation.y,
-            z: rowAnnotation.orientation.z,
-            w: rowAnnotation.orientation.w,
-          },
-        });
+        existedAnnotation.update(updateAttributes);
       } else {
         if (rowAnnotation.shapeType === 'Cube') {
-          const newShape = new CubeObject(
-            {
-              x: rowAnnotation.position.x,
-              y: rowAnnotation.position.y,
-              z: rowAnnotation.position.z,
-            },
-            {
-              x: rowAnnotation.length,
-              y: rowAnnotation.width,
-              z: rowAnnotation.height,
-            },
-            {
-              x: rowAnnotation.orientation.x,
-              y: rowAnnotation.orientation.y,
-              z: rowAnnotation.orientation.z,
-              w: rowAnnotation.orientation.w,
-            },
-          );
+          const newShape = new CubeShape(updateAttributes);
           this._frameAnnotationToShape.set(rowAnnotation.id, newShape);
           this._sceneManager.addAnnotationBox(newShape);
         }
@@ -89,7 +121,32 @@ export class TransferSpace {
     });
   }
 
-  addAnnotationToFrame(): void {}
+  addAnnotationToFrame(shape: BaseShape): void {
+    if (shape.type === 'SharpCube') {
+      const cubeShape = shape as CubeShape;
+      this._sceneManager.addAnnotationBox(cubeShape);
+      const rawAnnotation = createCubeRowFromSharp(cubeShape);
 
-  updateAnnotation(): void {}
+      this._frameAnnotationToShape.set(rawAnnotation.id, shape);
+      this._currentFrame.annotations.push(rawAnnotation);
+    }
+    this._eventBus.emit(ObjectBusEvent.RenderAll);
+  }
+
+  updateAnnotation(shape: BaseShape): void {
+    if (shape.type === 'SharpCube') {
+      const rawMessage = this._currentFrame.annotations.find(
+        (item) => item.id === shape.uuid,
+      );
+      const attributes = getCubeRawAttributeFromShape(shape as CubeShape);
+      for (const attribute in attributes) {
+        rawMessage[attribute] = attributes[attribute];
+      }
+      // rawMessage = {
+      //   ...rawMessage,
+      //   ...attributes,
+      // };
+    }
+    this._eventBus.emit(ObjectBusEvent.RenderAll);
+  }
 }
